@@ -5,7 +5,10 @@ import xml.etree.ElementTree as ET
 from optparse import OptionParser
 from datetime import datetime
 from Bio import Entrez, Medline
+import logging
 import tempfile
+
+from citation_reporter.Author import Author
 
 START_YEAR=2010
 END_YEAR=datetime.now().year+1
@@ -13,6 +16,7 @@ DEFAULT_AFFILIATION="Sanger"
 
 
 def main():
+  logger = logging.getLogger(__name__)
   usage = "usage: %prog [options]"
   parser = OptionParser(usage=usage)
         
@@ -70,7 +74,7 @@ def run_esearch(author, start_year, end_year, affiliation):
   if options.verbose:
     print "Searching for publications by", author, "affiliated with", affiliation, "between", start_year, "and", end_year
   
-  search_tempate = """\
+  search_template = """\
   (
     ({author}[Author]) AND 
     {affiliation}[Affiliation]
@@ -88,42 +92,6 @@ def run_esearch(author, start_year, end_year, affiliation):
     print "Found", records["Count"], "records", len(records["IdList"])
   return records["IdList"]
   
-
-def read_author_info(line, author_id):
-  words=line.strip().split(",")
-  if len(words)<2 or len(words)>6:
-    print "Names file must be a csv containing two to six columns for each quthor: surname (required), first name (required), middle initial (optional), affiliation(optional), ORCID ID (optional), ResearchGate ID (optional)"
-    return 1
-  author={}
-  author["ID"]=author_id
-  author["surname"]=words[0].strip()
-  author["first_name"]=words[1].strip()
-  if len(words)>2:
-    author["middle_initials"]=words[2].strip()
-  else:
-    author["middle_initials"]=""
-  if len(words)>3 and words[3].strip()!="":
-    author["affiliation"]=words[3].strip()
-  else:
-    author["affiliation"]=options.affiliation
-  if len(words)>4:
-    author["ORCID"]=words[4].strip().replace("-","")
-  else:
-    author["ORCID"]=""
-  if len(words)>5:
-    author["Researchgate"]=words[4].strip().replace("-","")
-  else:
-    author["Researchgate"]=""
-  author["first_initial"]=author["first_name"][0]
-  author["primary_name"]=author["surname"]+" "+author["first_initial"]
-  author["all_names"]=[author["primary_name"], author["surname"]+" "+author["first_name"]]
-  if author["middle_initials"]!="":
-    author["all_names"].append(author["surname"]+" "+author["first_initial"]+author["middle_initials"])
-    author["all_names"].append(author["surname"]+" "+author["first_name"]+" "+author["middle_initials"])
-    author["full_name"]=author["first_name"]+" "+author["middle_initials"]+" "+author["surname"]
-  else:
-    author["full_name"]=author["first_name"]+" "+author["surname"]
-  return author
 
 if __name__=="__main__":
 
@@ -144,14 +112,10 @@ if __name__=="__main__":
   
   pmids={}
   authors={}
-  print
-  author_count=0
-  for line in open(options.authorsfile, "rU"):
-    author=read_author_info(line, author_count)
-    if author==1:
-      continue
-    author_count+=1
-    authors[author["ID"]]=author
+  with open(options.authorsfile, "rU") as authorsfile:
+    authors = Author.load_csv(authorsfile, options)
+  authors_count = len(authors)
+  for author in authors.values():
     author_pmids=run_esearch(author["primary_name"], options.start, options.end, author["affiliation"])
     for pmid in author_pmids:
       if not pmid in pmids:
