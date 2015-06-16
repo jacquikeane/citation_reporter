@@ -89,23 +89,19 @@ if __name__=="__main__":
       exclude_list.add(line.strip())
   
   
-  pmids={}
+  publications={}
   authors={}
   with open(options.authorsfile, "rU") as authorsfile:
     authors = Author.load_csv(authorsfile, options)
   authors_count = len(authors)
   for author in authors.values():
-    author_pmids = Searcher.get_publications(author, options.start, options.end)
-    for pmid in author_pmids:
-      if not pmid in pmids:
-        pmids[pmid]=[author["ID"]]
-      else:
-        pmids[pmid].append(author["ID"])
-  
+    publications.update(Searcher.get_publications(author, options.start,
+                                                  options.end))
+
   if options.verbose:
-    print "\nFound", len(pmids), "citations with at least one author matching the input queries"
+    print "\nFound", len(publications), "citations with at least one author matching the input queries"
   
-  for key in pmids:
+  for key in publications:
     include_list.add(key)
   
   pmidlist=list(include_list.difference(exclude_list))

@@ -25,4 +25,8 @@ class Searcher(object):
     records=Entrez.read(handle)
     handle.close()
     logger.info("Found {count} records".format(count=len(records["IdList"])))
-    return records["IdList"]
+    return {pubmed_id: Publication(pubmed_id) for pubmed_id in records["IdList"]}
+
+class Publication(object):
+  def __init__(self, pubmed_id):
+    self.pubmed_id = pubmed_id
