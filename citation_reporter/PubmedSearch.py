@@ -1,7 +1,8 @@
 import logging
 
-from Bio import Entrez
+from Bio import Entrez, Medline
 from datetime import datetime
+from StringIO import StringIO
 
 class Searcher(object):
   @classmethod
@@ -27,6 +28,20 @@ class Searcher(object):
     logger.info("Found {count} records".format(count=len(records["IdList"])))
     return {pubmed_id: Publication(pubmed_id) for pubmed_id in records["IdList"]}
 
-class Publication(object):
-  def __init__(self, pubmed_id):
+class Publication(dict):
+  @classmethod
+  def get_details(cls, publications):
+    pubmed_ids = publications.keys()
+    handle = Entrez.efetch(db="pubmed", id=pubmed_ids, retmode="text",
+                           rettype="medline", retmax=10000)
+    records = Medline.parse(handle)
+    for record in records:
+      pubmed_id = record['PMID']
+      publications[pubmed_id].update(record)
+    return publications
+
+  def __init__(self, pubmed_id, data=None):
+    data = {} if data == None else data
     self.pubmed_id = pubmed_id
+    for key, value in data.items():
+      self[key] = value

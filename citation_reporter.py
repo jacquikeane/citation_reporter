@@ -4,12 +4,11 @@ import os, sys
 import xml.etree.ElementTree as ET
 from optparse import OptionParser
 from datetime import datetime
-from Bio import Entrez, Medline
 import logging
 import tempfile
 
 from citation_reporter.Author import Author
-from citation_reporter.PubmedSearch import Searcher
+from citation_reporter.PubmedSearch import Searcher, Publication
 
 START_YEAR=2010
 END_YEAR=datetime.now().year+1
@@ -88,9 +87,9 @@ if __name__=="__main__":
     for line in open(options.excludefile):
       exclude_list.add(line.strip())
   
-  
-  publications={}
+  publications={pubmed_id: Publication(pubmed_id, {'whitelist': True}) for pubmed_id in include_list}
   authors={}
+
   with open(options.authorsfile, "rU") as authorsfile:
     authors = Author.load_csv(authorsfile, options)
   authors_count = len(authors)
@@ -101,30 +100,18 @@ if __name__=="__main__":
   if options.verbose:
     print "\nFound", len(publications), "citations with at least one author matching the input queries"
   
-  for key in publications:
-    include_list.add(key)
+  publications={publication.pubmed_id: publication for publication in
+                publications.values() if publication.pubmed_id not in
+                exclude_list}
   
-  pmidlist=list(include_list.difference(exclude_list))
-  
-  handle = Entrez.esummary(db="pubmed", id=pmidlist[0])
-  record = Entrez.read(handle)
-  record[0].keys()
-  
-  handle = Entrez.efetch(db="pubmed", id=pmidlist, retmode="text", rettype="medline", retmax=10000)
-  fp = tempfile.TemporaryFile()
-  #print records
-  #tmpfile=open("tmp", "w")
-  fp.write(handle.read())
-  #tmpfile.close()
-  fp.seek(0)
-  records=Medline.parse(fp)
+  publications = Publication.get_details(publications)
   
   output=open(options.outputfile, "w")
   print >> output, ','.join(["Pubmed ID", "Location Identifier","Title","Authors","E-publication Date", "Publication Date", "Publication Type", "Journal", "Journal Abbreviation", "Volumne", "Issue", "Pages", "Publication Year", "Affiliated Authors"])
   
   out_count=0
   
-  for record in records:
+  for record in publications.values():
     author_matches=[]
     for au in record["AU"]:
       au=au.strip()
@@ -177,8 +164,6 @@ if __name__=="__main__":
 
       
     
-  fp.close()
-  handle.close()
   output.close()
   print "\n", out_count, "citations with at least one author matching the input queries have been printed to", options.outputfile
   print "\nFinished\n"
