@@ -45,3 +45,15 @@ class Publication(dict):
     self.pubmed_id = pubmed_id
     for key, value in data.items():
       self[key] = value
+
+  def format(self):
+    outlist=[]
+    for key in ["PMID", "LID", "TI", "AU", "DEP", "DP", "PT", "JT", "TA", "VI", "IP", "PG"]:
+      value = self.get(key, "")
+      if isinstance(value, list):
+        value="; ".join(map(str,value))
+      value = str(value).replace(",", ";")
+      outlist.append(value)
+    publication_date = str(self.get("DP", "").split()[0])
+    outlist.append(publication_date)
+    return ','.join(outlist)
