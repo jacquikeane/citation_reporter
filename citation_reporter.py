@@ -70,11 +70,15 @@ def run_esearch(author, start_year, end_year, affiliation):
   if options.verbose:
     print "Searching for publications by", author, "affiliated with", affiliation, "between", start_year, "and", end_year
   
-  
-  esearch_query='(('+author+'[Author]) AND '+affiliation+'[Affiliation]) AND ("'+str(start_year)+'/1/1"[Date - Publication] : "'+str(end_year)+'"[Date - Publication])'
-  #esearch_query='(('+author+'[Author]) AND ("'+str(start_year)+'/1/1"[Date - Publication] : "'+str(end_year)+'"[Date - Publication])'
-  #esearch_args = shlex.split(esearch_command)
-  #esearch_result=subprocess.check_output(esearch_args)
+  search_tempate = """\
+  (
+    ({author}[Author]) AND 
+    {affiliation}[Affiliation]
+  ) AND (
+    \"{start_year}/1/1\"[Date - Publication] : \"{end_year}\"[Date -  Publication]
+  )"""
+  esearch_query=search_template.format(author=author, affiliation=affiliation,
+                                      start_year=start_year, end_year=end_year)
   
   Entrez.email = "Your.Name.Here@example.org"
   handle=Entrez.esearch(db="pubmed", term=esearch_query, retmax=1000)
