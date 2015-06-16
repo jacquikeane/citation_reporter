@@ -9,6 +9,7 @@ import logging
 import tempfile
 
 from citation_reporter.Author import Author
+from citation_reporter.PubmedSearch import Searcher
 
 START_YEAR=2010
 END_YEAR=datetime.now().year+1
@@ -16,7 +17,6 @@ DEFAULT_AFFILIATION="Sanger"
 
 
 def main():
-  logger = logging.getLogger(__name__)
   usage = "usage: %prog [options]"
   parser = OptionParser(usage=usage)
         
@@ -70,30 +70,9 @@ def check_command_line():
     sys.exit(1)
 
 
-def run_esearch(author, start_year, end_year, affiliation):
-  if options.verbose:
-    print "Searching for publications by", author, "affiliated with", affiliation, "between", start_year, "and", end_year
-  
-  search_template = """\
-  (
-    ({author}[Author]) AND 
-    {affiliation}[Affiliation]
-  ) AND (
-    \"{start_year}/1/1\"[Date - Publication] : \"{end_year}\"[Date -  Publication]
-  )"""
-  esearch_query=search_template.format(author=author, affiliation=affiliation,
-                                      start_year=start_year, end_year=end_year)
-  
-  Entrez.email = "Your.Name.Here@example.org"
-  handle=Entrez.esearch(db="pubmed", term=esearch_query, retmax=1000)
-  records=Entrez.read(handle)
-  handle.close()
-  if options.verbose:
-    print "Found", records["Count"], "records", len(records["IdList"])
-  return records["IdList"]
-  
-
 if __name__=="__main__":
+  logger = logging.getLogger(__name__)
+  logger.setLevel(logging.DEBUG)
 
   (options, args)=main()
   check_command_line()
@@ -116,7 +95,7 @@ if __name__=="__main__":
     authors = Author.load_csv(authorsfile, options)
   authors_count = len(authors)
   for author in authors.values():
-    author_pmids=run_esearch(author["primary_name"], options.start, options.end, author["affiliation"])
+    author_pmids = Searcher.get_publications(author, options.start, options.end)
     for pmid in author_pmids:
       if not pmid in pmids:
         pmids[pmid]=[author["ID"]]
