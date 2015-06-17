@@ -2,7 +2,7 @@ import csv
 import logging
 
 
-class Author(dict):
+class Author(object):
   @classmethod
   def load_csv(cls, authors_file, options):
     logger = logging.getLogger(__name__)
@@ -19,33 +19,47 @@ class Author(dict):
       row.append([""*6])
       row = row[:6]
 
-      author["ID"]=row_number
-      author["surname"]=row[0].strip()
-      author["first_name"]=row[1].strip()
-      author["middle_initials"]=row[2].strip()
+      author.ID=row_number
+      author.surname=row[0].strip()
+      author.first_name=row[1].strip()
+      author.middle_initials=row[2].strip()
+      author.middle_initials.replace(" ", "")
       if row[3].strip()!="":
-        author["affiliation"]=row[3].strip()
+        author.affiliation=row[3].strip()
       else:
-        author["affiliation"]=options.affiliation
-      author["ORCID"]=row[4].strip().replace("-","")
-      author["Researchgate"]=row[4].strip().replace("-","")
-  
-      author["first_initial"]=author["first_name"][0]
-      author["primary_name"]=author["surname"]+" "+author["first_initial"]
-      author["all_names"]=[author["primary_name"], author["surname"]+" "+author["first_name"]]
-      if author["middle_initials"]!="":
-        author["all_names"].append(author["surname"]+" "+author["first_initial"]+author["middle_initials"])
-        author["all_names"].append(author["surname"]+" "+author["first_name"]+" "+author["middle_initials"])
-        author["full_name"]=author["first_name"]+" "+author["middle_initials"]+" "+author["surname"]
-      else:
-        author["full_name"]=author["first_name"]+" "+author["surname"]
-  
+        author.affiliation=options.affiliation
+      author.ORCID=row[4].strip().replace("-","")
+      author.Researchgate=row[4].strip().replace("-","")
+
       authors[row_number] = author
 
     return authors
 
+  def full_name(self):
+    if self.middle_initials:
+      return "%s %s %s" % (self.first_name, self.middle_initials, self.surname)
+    else:
+      return "%s %s" % (self.first_name, self.surname)
+
+  def primary_name(self):
+    return "%s %s" % (self.surname, self.first_name[0])
+
+  def all_names(self):
+    names = [self.primary_name()]
+    names.append("%s %s" % (self.surname, self.first_name))
+    names.append("%s %s" % (self.first_name, self.surname))
+    names.append("%s %s" % (self.first_name[0], self.surname))
+    if self.middle_initials:
+      names.append("%s %s%s" % (self.surname, self.first_name[0],
+                                self.middle_initials))
+      names.append("%s %s %s" % (self.first_name, self.middle_initials,
+                                 self.surname))
+      names.append("%s%s %s" % (self.first_name, self.middle_initials,
+                                 self.surname))
+    return names
+
   def is_pseudonym(self, name):
-    return name in self['all_names']
+    return name in self.all_names()
 
   def format_pubmed_query(self):
-    return "%s[Author]" % self["primary_name"]
+    return "%s[Author]" % self.primary_name()

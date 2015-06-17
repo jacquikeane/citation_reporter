@@ -19,7 +19,7 @@ class Searcher(object):
     ) AND (
       \"{start_year}/1/1\"[Date - Publication] : \"{end_year}\"[Date - Publication]
     )""".format(author_query=author.format_pubmed_query(),
-                affiliation=author['affiliation'],
+                affiliation=author.affiliation,
                 start_year=start_year, end_year=end_year)
     logger.debug("Search query: %s" % search_query)
     Entrez.email = "Your.Name.Here@example.org"
@@ -66,7 +66,7 @@ class Publication(dict):
       outlist.append(value)
     publication_date = str(self.get("DP", "").split()[0])
     outlist.append(publication_date)
-    authors_text = "; ".join([author["full_name"] for author in
+    authors_text = "; ".join([author.full_name() for author in
                               self.most_likely_affiliated_authors()])
     outlist.append(authors_text)
     return outlist
@@ -81,7 +81,7 @@ class Publication(dict):
 
     likely_authors = self.most_likely_affiliated_authors()
     if len(likely_authors) > 0:
-      matching_authors_string = ', '.join(author["full_name"] for author in
+      matching_authors_string = ', '.join(author.full_name() for author in
                                          likely_authors)
       self.logger.info("%s matches %s authors: %s" % (self["TI"],
                                                       len(likely_authors),
