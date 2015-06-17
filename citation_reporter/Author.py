@@ -48,7 +48,7 @@ class User(object):
         continue
 
       # Pad the row to 6 fields
-      row.append([""*6])
+      row += [""]*6
       row = row[:6]
 
       user.ID=row_number

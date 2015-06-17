@@ -120,7 +120,7 @@ class Publication(dict):
 
   def _denies_author(self, author_string, user_id):
     for author in self.affiliated_authors.get(author_string, []):
-      if author.ID == user_id and author.confirmtion_status == Author.DENIED:
+      if author.user_id == user_id and author.confirmtion_status == Author.DENIED:
         return True
     return False
 
