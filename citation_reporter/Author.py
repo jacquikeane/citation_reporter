@@ -86,7 +86,7 @@ class User(object):
                                 self.middle_initials))
       names.append("%s %s %s" % (self.first_name, self.middle_initials,
                                  self.surname))
-      names.append("%s%s %s" % (self.first_name, self.middle_initials,
+      names.append("%s%s %s" % (self.first_name[0], self.middle_initials,
                                  self.surname))
     return names
 
@@ -94,7 +94,8 @@ class User(object):
     return name in self.all_names()
 
   def format_pubmed_query(self):
-    return "%s[Author]" % self.primary_name()
+    terms = ["%s[Author]" % name for name in self.all_names()]
+    return " OR ".join(terms)
 
   def to_dict(self):
     user_data = {
