@@ -108,26 +108,41 @@ class Publication(dict):
       self.logger.info("%s matches no authors in file" % self["TI"])
 
   def _get_confirmed_author(self, author_string):
+    """Returns a list of Author objects where a human has confirmed that one of
+    our Users is actually an Author of this Publication"""
     for author in self.affiliated_authors.get(author_string, []):
       if author.confirmation_status == Author.CONFIRMED:
         return author
     return None
 
   def _get_possible_authors(self, author_string):
+    """Returns a list of all of the possible Authors of a Publication.
+
+    i.e. it excludes all mappings of Publication to User which a human has said
+    are either definitly accurate or definitly not accurate"""
     def is_possible(author):
       return author.confirmation_status == Author.POSSIBLE
     return filter(is_possible, self.affiliated_authors.get(author_string, []))
 
   def _denies_author(self, author_string, user_id):
+    """Checks whether a human has denied that the given user_id is not the
+    reported author_string for this Publication"""
     for author in self.affiliated_authors.get(author_string, []):
       if author.user_id == user_id and author.confirmtion_status == Author.DENIED:
         return True
     return False
 
   def has_affiliated_authors(self):
+    """Checks if any of our Users is a confirmed or possible Author of the
+    Publication"""
     return len(self.most_likely_affiliated_authors()) > 0
 
   def most_likely_affiliated_authors(self):
+    """Returns the most likely Users who may have authored the Publication.
+
+    If a human has confirmed a User is an Author, this is returned.  Otherwise
+    each of the authors returned by pubmed is matched to at most one User (or
+    none if no sensible matches are possible"""
     likely_authors = []
     for author_string in self.affiliated_authors.keys():
       author = self._get_confirmed_author(author_string)
