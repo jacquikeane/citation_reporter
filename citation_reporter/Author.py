@@ -43,25 +43,28 @@ class User(object):
     users = {}
     for row_number,row in enumerate(users_csv):
       user = User()
-      if len(row) < 2 or len(row) > 6:
-        logging.warn("Row %s: Names file must be a csv containing two to six columns for each quthor: surname (required), first name (required), middle initial (optional), affiliation(optional), ORCID ID (optional), ResearchGate ID (optional)" % row_number)
+      if len(row) < 3 or len(row) > 7:
+        logging.warn("Row %s: Names file must be a csv containing three to seven columns for each quthor: user_id (required), surname (required), first name (required), middle initial (optional), affiliation(optional), ORCID ID (optional), ResearchGate ID (optional)" % row_number)
         continue
 
       # Pad the row to 6 fields
-      row += [""]*6
-      row = row[:6]
+      row += [""]*7
+      row = row[:7]
 
-      user.ID=row_number
-      user.surname=row[0].strip()
-      user.first_name=row[1].strip()
-      user.middle_initials=row[2].strip()
+      user.ID=row[0].strip()
+      if user.ID in users:
+        logging.warn("Row %s: Could not add user, user_id (first column) must be unique" % row_number)
+        continue
+      user.surname=row[1].strip()
+      user.first_name=row[2].strip()
+      user.middle_initials=row[3].strip()
       user.middle_initials.replace(" ", "")
-      if row[3].strip()!="":
-        user.affiliation=row[3].strip()
+      if row[4].strip()!="":
+        user.affiliation=row[4].strip()
       else:
         user.affiliation=options.affiliation
-      user.ORCID=row[4].strip().replace("-","")
-      user.Researchgate=row[4].strip().replace("-","")
+      user.ORCID=row[5].strip().replace("-","")
+      user.Researchgate=row[5].strip().replace("-","")
 
       users[row_number] = user
 
