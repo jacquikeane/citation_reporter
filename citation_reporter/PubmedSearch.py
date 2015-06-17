@@ -6,7 +6,7 @@ from StringIO import StringIO
 
 class Searcher(object):
   @classmethod
-  def get_publications(cls, author, start_year=None, end_year=None):
+  def get_publications(cls, user, start_year=None, end_year=None):
     logger = logging.getLogger(__name__)
     if start_year == None:
       start_year = 2010
@@ -14,12 +14,12 @@ class Searcher(object):
       end_year = datetime.now().year+1
     search_query="""\
     (
-      ({author_query}) AND
+      ({user_query}) AND
       ({affiliation}[Affiliation])
     ) AND (
       \"{start_year}/1/1\"[Date - Publication] : \"{end_year}\"[Date - Publication]
-    )""".format(author_query=author.format_pubmed_query(),
-                affiliation=author.affiliation,
+    )""".format(user_query=user.format_pubmed_query(),
+                affiliation=user.affiliation,
                 start_year=start_year, end_year=end_year)
     logger.debug("Search query: %s" % search_query)
     Entrez.email = "Your.Name.Here@example.org"

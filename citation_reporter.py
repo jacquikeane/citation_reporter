@@ -36,11 +36,11 @@ def main():
 def check_command_line():
   do_exit=False
   
-  if options.authorsfile=="":
-    print "No authors file specified"
+  if options.usersfile=="":
+    print "No users file specified"
     do_exit=True
-  if not os.path.isfile(options.authorsfile):
-    print "Cannot find authors file:", options.authorsfile
+  if not os.path.isfile(options.usersfile):
+    print "Cannot find users file:", options.usersfile
     do_exit=True
   if options.includefile!="" and not os.path.isfile(options.includefile):
     print "Cannot find file:", options.includefile
@@ -89,17 +89,17 @@ if __name__=="__main__":
       exclude_list.add(line.strip())
   
   publications={pubmed_id: Publication(pubmed_id, {'whitelist': True}) for pubmed_id in include_list}
-  authors={}
+  users={}
 
-  with open(options.authorsfile, "rU") as authorsfile:
-    authors = Author.load_csv(authorsfile, options)
-  authors_count = len(authors)
-  for author in authors.values():
-    publications.update(Searcher.get_publications(author, options.start,
+  with open(options.usersfile, "rU") as usersfile:
+    users = User.load_csv(usersfile, options)
+  users_count = len(users)
+  for user in users.values():
+    publications.update(Searcher.get_publications(user, options.start,
                                                   options.end))
 
   if options.verbose:
-    print "\nFound", len(publications), "citations with at least one author matching the input queries"
+    print "\nFound", len(publications), "citations with at least one user matching the input queries"
   
   publications={publication.pubmed_id: publication for publication in
                 publications.values() if publication.pubmed_id not in
@@ -123,5 +123,5 @@ if __name__=="__main__":
     csv_writer.writerow(publication_row)
     
   output.close()
-  print "\n", out_count, "citations with at least one author matching the input queries have been printed to", options.outputfile
+  print "\n", out_count, "citations with at least one user matching the input queries have been printed to", options.outputfile
   print "\nFinished\n"

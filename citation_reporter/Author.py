@@ -2,15 +2,15 @@ import csv
 import logging
 
 
-class Author(object):
+class User(object):
   @classmethod
-  def load_csv(cls, authors_file, options):
+  def load_csv(cls, users_file, options):
     logger = logging.getLogger(__name__)
-    authors_file.seek(0)
-    authors_csv = csv.reader(authors_file)
-    authors = {}
-    for row_number,row in enumerate(authors_csv):
-      author = Author()
+    users_file.seek(0)
+    users_csv = csv.reader(users_file)
+    users = {}
+    for row_number,row in enumerate(users_csv):
+      user = User()
       if len(row) < 2 or len(row) > 6:
         logging.warn("Row %s: Names file must be a csv containing two to six columns for each quthor: surname (required), first name (required), middle initial (optional), affiliation(optional), ORCID ID (optional), ResearchGate ID (optional)" % row_number)
         continue
@@ -19,21 +19,21 @@ class Author(object):
       row.append([""*6])
       row = row[:6]
 
-      author.ID=row_number
-      author.surname=row[0].strip()
-      author.first_name=row[1].strip()
-      author.middle_initials=row[2].strip()
-      author.middle_initials.replace(" ", "")
+      user.ID=row_number
+      user.surname=row[0].strip()
+      user.first_name=row[1].strip()
+      user.middle_initials=row[2].strip()
+      user.middle_initials.replace(" ", "")
       if row[3].strip()!="":
-        author.affiliation=row[3].strip()
+        user.affiliation=row[3].strip()
       else:
-        author.affiliation=options.affiliation
-      author.ORCID=row[4].strip().replace("-","")
-      author.Researchgate=row[4].strip().replace("-","")
+        user.affiliation=options.affiliation
+      user.ORCID=row[4].strip().replace("-","")
+      user.Researchgate=row[4].strip().replace("-","")
 
-      authors[row_number] = author
+      users[row_number] = user
 
-    return authors
+    return users
 
   def full_name(self):
     if self.middle_initials:
