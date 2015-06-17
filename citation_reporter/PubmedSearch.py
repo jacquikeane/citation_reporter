@@ -1,4 +1,5 @@
 import logging
+import os
 
 from Bio import Entrez, Medline
 from datetime import datetime
@@ -24,7 +25,7 @@ class Searcher(object):
                 affiliation=user.affiliation,
                 start_year=start_year, end_year=end_year)
     logger.debug("Search query: %s" % search_query)
-    Entrez.email = "Your.Name.Here@example.org"
+    Entrez.email = os.environ.get("EntrezEmail", "Your.Name.Here@example.org")
     handle=Entrez.esearch(db="pubmed", term=search_query, retmax=1000)
     records=Entrez.read(handle)
     handle.close()
@@ -35,6 +36,7 @@ class Publication(dict):
   @classmethod
   def get_details(cls, publications):
     pubmed_ids = publications.keys()
+    Entrez.email = os.environ.get("EntrezEmail", "Your.Name.Here@example.org")
     handle = Entrez.efetch(db="pubmed", id=pubmed_ids, retmode="text",
                            rettype="medline", retmax=10000)
     records = Medline.parse(handle)
