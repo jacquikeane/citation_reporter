@@ -110,41 +110,15 @@ if __name__=="__main__":
   print >> output, ','.join(["Pubmed ID", "Location Identifier","Title","Authors","E-publication Date", "Publication Date", "Publication Type", "Journal", "Journal Abbreviation", "Volumne", "Issue", "Pages", "Publication Year", "Affiliated Authors"])
   
   out_count=0
-  
   for publication in publications.values():
-    author_matches=[]
-    for au in publication["AU"]:
-      au=au.strip()
-      for authorid in authors:
-        author=authors[authorid]
-        if au in author["all_names"]:
-          author_matches.append(author["ID"])
-          
-    author_name_matches=[]
-    for match in author_matches:
-      author_name_matches.append(authors[match]["full_name"])
-    
-    if options.verbose:
-      if len(author_matches)==0:
-        print publication["TI"], "matches no authors in file. Removing..."
-        continue
-      else:
-        if len(author_matches)==1:
-          print publication["TI"], "matches", len(author_matches), "author:", ', '.join(author_name_matches)
-        else:
-          print publication["TI"], "matches", len(author_matches), "authors:", ', '.join(author_name_matches)
-    else:
-      if len(author_matches)==0:
-        continue
+    publication.update_authors(authors)
+    if not publication.has_affiliated_authors():
+      continue
     
     publication_text = publication.format()
-    author_text = "; ".join(author_name_matches)
-    all_text = "{publication},{author_names}".format(
-                 publication=publication_text,
-                 author_names=author_text)
     
     out_count+=1
-    print >> output, all_text
+    print >> output, publication_text
     
   output.close()
   print "\n", out_count, "citations with at least one author matching the input queries have been printed to", options.outputfile

@@ -18,7 +18,8 @@ class Searcher(object):
       ({affiliation}[Affiliation])
     ) AND (
       \"{start_year}/1/1\"[Date - Publication] : \"{end_year}\"[Date - Publication]
-    )""".format(author_query=author.query(), affiliation=author['affiliation'],
+    )""".format(author_query=author.format_pubmed_query(),
+                affiliation=author['affiliation'],
                 start_year=start_year, end_year=end_year)
     logger.debug("Search query: %s" % search_query)
     Entrez.email = "Your.Name.Here@example.org"
@@ -41,10 +42,12 @@ class Publication(dict):
     return publications
 
   def __init__(self, pubmed_id, data=None):
+    self.logger = logging.getLogger(__name__)
     data = {} if data == None else data
     self.pubmed_id = pubmed_id
     for key, value in data.items():
       self[key] = value
+    self.affiliated_authors = {}
 
   def format(self):
     outlist=[]
@@ -56,4 +59,42 @@ class Publication(dict):
       outlist.append(value)
     publication_date = str(self.get("DP", "").split()[0])
     outlist.append(publication_date)
+    authors_text = "; ".join([author["full_name"] for author in
+                              self.most_likely_affiliated_authors()])
+    outlist.append(authors_text)
     return ','.join(outlist)
+
+  def update_authors(self, authors):
+    for author_string in self["AU"]:
+      author_string=author_string.strip()
+      self.affiliated_authors.setdefault(author_string, [])
+      for author in authors.values():
+        if author.is_pseudonym(author_string):
+          self.affiliated_authors[author_string].append((author, 1.0))
+
+    likely_authors = self.most_likely_affiliated_authors()
+    if len(likely_authors) > 0:
+      matching_authors_string = ', '.join(author["full_name"] for author in
+                                         likely_authors)
+      self.logger.info("%s matches %s authors: %s" % (self["TI"],
+                                                      len(likely_authors),
+                                                      matching_authors_string))
+    else:
+      self.logger.info("%s matches no authors in file" % self["TI"])
+
+  def has_affiliated_authors(self):
+    return len(self.most_likely_affiliated_authors()) > 0
+
+  def most_likely_affiliated_authors(self):
+    def by_probability(author_probability):
+      author, probability = author_probability
+      return probability
+    likely_authors = []
+    for author_string, author_probabilities in self.affiliated_authors.items():
+      if len(author_probabilities) == 0:
+        continue
+      most_likely = max(author_probabilities, key=by_probability)
+      author, probability = most_likely
+      if probability > 0:
+        likely_authors.append(author)
+    return likely_authors

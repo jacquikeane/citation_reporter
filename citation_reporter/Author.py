@@ -18,7 +18,7 @@ class Author(dict):
       # Pad the row to 6 fields
       row.append([""*6])
       row = row[:6]
-  
+
       author["ID"]=row_number
       author["surname"]=row[0].strip()
       author["first_name"]=row[1].strip()
@@ -44,5 +44,8 @@ class Author(dict):
 
     return authors
 
-  def query(self):
+  def is_pseudonym(self, name):
+    return name in self['all_names']
+
+  def format_pubmed_query(self):
     return "%s[Author]" % self["primary_name"]
