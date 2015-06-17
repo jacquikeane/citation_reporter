@@ -1,5 +1,6 @@
 import csv
 import logging
+import yaml
 
 class Author(object):
   """An Author is used to link a publication to a potential User who contributed
@@ -85,3 +86,36 @@ class User(object):
 
   def format_pubmed_query(self):
     return "%s[Author]" % self.primary_name()
+
+  @classmethod
+  def to_yaml(self, users):
+    data = []
+    for user in users.values():
+      user_data = {
+               "ID": user.ID,
+               "surname": user.surname,
+               "first_name": user.first_name,
+               "middle_initials": user.middle_initials,
+               "affiliation": user.affiliation,
+               "ORCID": user.ORCID,
+               "Researchgate": user.Researchgate
+      }
+      data.append(user_data)
+    return yaml.dump(data, default_flow_style=False)
+
+  @classmethod
+  def from_yaml(self, yaml_data):
+    data = yaml.load(yaml_data)
+    users = {}
+    for user_data in data:
+      user = User()
+      user.ID = user_data.get("ID", "")
+      user.surname = user_data.get("surname", "")
+      user.first_name = user_data.get("first_name", "")
+      user.middle_initials = user_data.get("middle_initials", "")
+      user.affiliation = user_data.get("affiliation", "")
+      user.ORCID = user_data.get("ORCID", "")
+      user.Researchgate = user_data.get("Researchgate", "")
+
+      users[user.ID] = user
+    return users
