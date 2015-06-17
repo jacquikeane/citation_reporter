@@ -8,7 +8,7 @@ from datetime import datetime
 import logging
 import tempfile
 
-from citation_reporter.Author import Author
+from citation_reporter.Author import User
 from citation_reporter.PubmedSearch import Searcher, Publication
 
 START_YEAR=2010
@@ -22,12 +22,12 @@ def main():
         
         
   parser.add_option("-o", "--output", action="store", dest="outputfile", help="output file name (in csv format)", type="string", metavar="FILE", default="")
-  parser.add_option("-a", "--authors", action="store", dest="authorsfile", help="csv file containing two to six columns for each author: surname (required), first name (required), middle initial (optional), affiliation(optional), ORCID ID (optional), ResearchGate ID (optional)", type="string", metavar="FILE", default="")
+  parser.add_option("-u", "--users", action="store", dest="usersfile", help="csv file containing two to six columns for each user: surname (required), first name (required), middle initial (optional), affiliation(optional), ORCID ID (optional), ResearchGate ID (optional)", type="string", metavar="FILE", default="")
   parser.add_option("-i", "--include", action="store", dest="includefile", help="File containing PMIDs to add to matches (optional)", type="string", metavar="FILE", default="")
   parser.add_option("-x", "--exclude", action="store", dest="excludefile", help="File containing list of PMIDs to exclude from matches (optional)", type="string", metavar="FILE", default="")
   parser.add_option("-s", "--start_year", action="store", dest="start", help="Year to start search from [default = %default]", type="int", metavar="YEAR", default=START_YEAR)
   parser.add_option("-e", "--end_year", action="store", dest="end", help="Year to end search [default = present (<%default)]", type="int", metavar="YEAR", default=END_YEAR)
-  parser.add_option("-A", "--affiliation", action="store", dest="affiliation", help="Default affiliation (applies to any author without an affiliation specified in the authors file. [default = %default]", metavar="AFFILIATION", default=DEFAULT_AFFILIATION)
+  parser.add_option("-A", "--affiliation", action="store", dest="affiliation", help="Default affiliation (applies to any user without an affiliation specified in the users file. [default = %default]", metavar="AFFILIATION", default=DEFAULT_AFFILIATION)
   parser.add_option("-v", "--verbose", action="store_true", dest="verbose", help="Verbose mode", metavar="AFFILIATION", default=False)
   
   
@@ -113,7 +113,7 @@ if __name__=="__main__":
   
   out_count=0
   for publication in publications.values():
-    publication.update_authors(authors)
+    publication.update_authors(users)
     if not publication.has_affiliated_authors():
       continue
     
