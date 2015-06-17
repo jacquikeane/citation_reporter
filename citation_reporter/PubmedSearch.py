@@ -49,7 +49,14 @@ class Publication(dict):
       self[key] = value
     self.affiliated_authors = {}
 
-  def format(self):
+  @classmethod
+  def format_header_row(cls):
+    return ["Pubmed ID", "Location Identifier","Title","Authors",
+            "E-publication Date", "Publication Date", "Publication Type",
+            "Journal", "Journal Abbreviation", "Volumne", "Issue",
+            "Pages", "Publication Year", "Affiliated Authors"]
+
+  def format_row(self):
     outlist=[]
     for key in ["PMID", "LID", "TI", "AU", "DEP", "DP", "PT", "JT", "TA", "VI", "IP", "PG"]:
       value = self.get(key, "")
@@ -62,7 +69,7 @@ class Publication(dict):
     authors_text = "; ".join([author["full_name"] for author in
                               self.most_likely_affiliated_authors()])
     outlist.append(authors_text)
-    return ','.join(outlist)
+    return outlist
 
   def update_authors(self, authors):
     for author_string in self["AU"]:

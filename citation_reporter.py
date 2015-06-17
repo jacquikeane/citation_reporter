@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import csv
 import os, sys
 import xml.etree.ElementTree as ET
 from optparse import OptionParser
@@ -106,8 +107,9 @@ if __name__=="__main__":
   
   publications = Publication.get_details(publications)
   
-  output=open(options.outputfile, "w")
-  print >> output, ','.join(["Pubmed ID", "Location Identifier","Title","Authors","E-publication Date", "Publication Date", "Publication Type", "Journal", "Journal Abbreviation", "Volumne", "Issue", "Pages", "Publication Year", "Affiliated Authors"])
+  output=open(options.outputfile, "wb")
+  csv_writer = csv.writer(output, lineterminator='\n') # remove line terminator to be windows friendly
+  csv_writer.writerow(Publication.format_header_row())
   
   out_count=0
   for publication in publications.values():
@@ -115,10 +117,10 @@ if __name__=="__main__":
     if not publication.has_affiliated_authors():
       continue
     
-    publication_text = publication.format()
+    publication_row = publication.format_row()
     
     out_count+=1
-    print >> output, publication_text
+    csv_writer.writerow(publication_row)
     
   output.close()
   print "\n", out_count, "citations with at least one author matching the input queries have been printed to", options.outputfile
