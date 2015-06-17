@@ -22,6 +22,15 @@ class Author(object):
     self.user = user
     self.confirmation_status = confirmation_status
 
+  def to_dict(self):
+    data = {
+      "pubmed_string": self.pubmed_string,
+      "user_id": self.user_id,
+      "user": self.user.to_dict(),
+      "confirmation_status": self.confirmation_status
+    }
+    return data
+
 class User(object):
   """A User is an object representing a person we're interested in.  This object
   has methods which can be used to evaluate whether the user is an Author of a
@@ -87,19 +96,23 @@ class User(object):
   def format_pubmed_query(self):
     return "%s[Author]" % self.primary_name()
 
+  def to_dict(self):
+    user_data = {
+             "ID": self.ID,
+             "surname": self.surname,
+             "first_name": self.first_name,
+             "middle_initials": self.middle_initials,
+             "affiliation": self.affiliation,
+             "ORCID": self.ORCID,
+             "Researchgate": self.Researchgate
+    }
+    return user_data
+
   @classmethod
   def to_yaml(self, users):
     data = []
     for user in users.values():
-      user_data = {
-               "ID": user.ID,
-               "surname": user.surname,
-               "first_name": user.first_name,
-               "middle_initials": user.middle_initials,
-               "affiliation": user.affiliation,
-               "ORCID": user.ORCID,
-               "Researchgate": user.Researchgate
-      }
+      user_data = user.to_dict()
       data.append(user_data)
     return yaml.dump(data, default_flow_style=False)
 

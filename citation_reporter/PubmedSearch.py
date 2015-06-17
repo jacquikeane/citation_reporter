@@ -1,5 +1,6 @@
 import logging
 import os
+import yaml
 
 from Bio import Entrez, Medline
 from datetime import datetime
@@ -76,6 +77,12 @@ class Publication(dict):
     return outlist
 
   def update_authors(self, users):
+    """Updates self.affiliated_authors
+
+    self.affiliated_authors is a dictionary mapping the author strings returned
+    by pubmed to possible Users via a list of Author objects.  Author objects
+    include the pubmed provided string, a user_id, a User object and whether or
+    not a human has confirmed that this is a correct match"""
     for author_string in self["AU"]:
       author_string=author_string.strip()
       if self._get_confirmed_author(author_string):
@@ -135,3 +142,19 @@ class Publication(dict):
           continue
 
     return likely_authors
+
+  def to_dict(self):
+    keys = self.format_header_row()
+    values = self.format_row()
+    data = dict(zip(keys, values))
+    affiliated_authors_data = {}
+    for author_string, authors in self.affiliated_authors.items():
+      affiliated_authors_data[author_string] = [author.to_dict() for author in
+                                                authors]
+    data['affiliated_authors_data'] = affiliated_authors_data
+    return data
+
+  @classmethod
+  def to_yaml(cls, publications):
+    data = [publication.to_dict() for publication in publications.values()]
+    return yaml.dump(data, default_flow_style=False)
