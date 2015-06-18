@@ -8,6 +8,8 @@ from datetime import datetime
 import logging
 import tempfile
 
+logging.basicConfig(level=logging.INFO)
+
 from citation_reporter.Author import User
 from citation_reporter.PubmedSearch import Searcher, Publication
 
@@ -71,8 +73,6 @@ def check_command_line():
 
 
 if __name__=="__main__":
-  logger = logging.getLogger(__name__)
-  logger.setLevel(logging.DEBUG)
 
   (options, args)=main()
   check_command_line()

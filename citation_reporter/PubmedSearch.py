@@ -25,12 +25,13 @@ class Searcher(object):
     )""".format(user_query=user.format_pubmed_query(),
                 affiliation=user.affiliation,
                 start_year=start_year, end_year=end_year)
-    logger.debug("Search query: %s" % search_query)
+    logging.debug("Search query: %s" % search_query)
     Entrez.email = os.environ.get("EntrezEmail", "Your.Name.Here@example.org")
     handle=Entrez.esearch(db="pubmed", term=search_query, retmax=1000)
     records=Entrez.read(handle)
     handle.close()
-    logger.info("Found {count} records".format(count=len(records["IdList"])))
+    logging.info("Found {count} records for {name}".format(count=len(records["IdList"]),
+                                                           name=user.full_name()))
     return {pubmed_id: Publication(pubmed_id) for pubmed_id in records["IdList"]}
 
 class Publication(dict):
@@ -47,7 +48,6 @@ class Publication(dict):
     return publications
 
   def __init__(self, pubmed_id, data=None):
-    self.logger = logging.getLogger(__name__)
     data = {} if data == None else data
     self.pubmed_id = pubmed_id
     for key, value in data.items():
