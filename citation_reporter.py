@@ -89,8 +89,7 @@ if __name__=="__main__":
     new_pubmed_ids = Searcher.get_pubmed_ids_for_user(user, options.start, options.end)
     pubmed_ids.update(new_pubmed_ids)
 
-  if options.verbose:
-    print "\nFound", len(publications), "citations with at least one user matching the input queries"
+  logging.info("Found %s citations with at least one user matching the input queries" % len(publications))
   
   new_publications = Publication.from_pubmed_ids(list(pubmed_ids))
   publications = Publication.merge_publications(publications, new_publications)
@@ -112,7 +111,7 @@ if __name__=="__main__":
     csv_writer.writerow(publication_row)
     
   output.close()
-  print "\n", out_count, "citations with at least one user matching the input queries have been printed to", options.outputfile
+  logging.info("%s citations with at least one user matching the input queries have been printed to %s" % (out_count, options.outputfile))
   try:
     with open(options.publicationsfile, 'w') as publications_output:
       publications_output.write(Publication.to_yaml(publications))
@@ -120,4 +119,4 @@ if __name__=="__main__":
     # The file is missing
     logging.info("Could not write existing publications to %s, skipping" %
                 options.publicationsfile)
-  print "\nFinished\n"
+  logging.info("Finished")
