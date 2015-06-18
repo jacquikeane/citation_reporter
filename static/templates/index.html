@@ -1,0 +1,46 @@
+<html>
+  <head>
+    <title>Publication Reporter</title>
+    <script src="//code.jquery.com/jquery-2.1.3.min.js"></script>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+    <style>
+    .panel-heading
+    {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: block;
+      padding: 10px
+    }
+    .panel-heading:hover
+    {
+      white-space: normal;
+    }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row page-header">
+        <div class="col-md-12">
+    <h1>Publication Reporter</h1>
+          <p>This project isn't ready yet</p>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+        {% for pubmed_id, publication in publications.items() %}
+        <div class="panel panel-info">
+          <div class="panel-heading">
+            <h4><a href="http://www.ncbi.nlm.nih.gov/pubmed/{{ pubmed_id }}"><span class="label label-default">{{ pubmed_id }}</span></a> {{ publication['TI'] }}</h4>
+          </div>
+          <div class="panel-body">
+          </div>
+        </div>
+        {% endfor %}
+        </div>
+      </div>
+    </div>
+  </body>
+</html>  
