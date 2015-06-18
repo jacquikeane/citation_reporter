@@ -44,6 +44,22 @@
             </div>
           </div>
           <div class="panel-body">
+            {% for author in publication['AU'] %}
+            <div class="btn-group">
+              {% if publication.affiliated_authors.get(author, [])|length > 0 %}
+              <button type="button" class="btn btn-warning dropdown-toggle" data-toggle="dropdown">{{ publication.most_likely_affiliated_authors()[0].user.full_name() }} <span class="caret"></span></button>
+              <ul class="dropdown-menu">
+                {% for author in publication.affiliated_authors.get(author, []) %}
+                <li><a href="#">{{ author.user.full_name() }}</a></li>
+                {% endfor %}
+                <li role="separator" class="divider"></li>
+                <li><a href="#">None of the above</a></li>
+              </ul>
+              {% else %}
+              <button type="button" class="btn btn-default">{{author}}</button>
+              {% endif %}
+            </div>
+            {% endfor %}
           </div>
         </div>
         {% endfor %}
