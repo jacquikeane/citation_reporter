@@ -10,8 +10,7 @@ from citation_reporter.Author import Author
 
 class Searcher(object):
   @classmethod
-  def get_publications(cls, user, start_year=None, end_year=None):
-    logger = logging.getLogger(__name__)
+  def get_pubmed_ids_for_user(cls, user, start_year=None, end_year=None):
     if start_year == None:
       start_year = 2010
     if end_year == None:
@@ -32,19 +31,20 @@ class Searcher(object):
     handle.close()
     logging.info("Found {count} records for {name}".format(count=len(records["IdList"]),
                                                            name=user.full_name()))
-    return {pubmed_id: Publication(pubmed_id) for pubmed_id in records["IdList"]}
+    pubmed_ids = records["IdList"]
+    return pubmed_ids
 
 class Publication(dict):
   @classmethod
-  def get_details(cls, publications):
-    pubmed_ids = publications.keys()
+  def from_pubmed_ids(cls, pubmed_ids):
     Entrez.email = os.environ.get("EntrezEmail", "Your.Name.Here@example.org")
     handle = Entrez.efetch(db="pubmed", id=pubmed_ids, retmode="text",
                            rettype="medline", retmax=10000)
     records = Medline.parse(handle)
+    publications = {}
     for record in records:
       pubmed_id = record['PMID']
-      publications[pubmed_id].update(record)
+      publications[pubmed_id] = Publication(pubmed_id, record)
     return publications
 
   def __init__(self, pubmed_id, data=None):
@@ -52,13 +52,22 @@ class Publication(dict):
     self.pubmed_id = pubmed_id
     for key, value in data.items():
       self[key] = value
-    self.affiliated_authors = {}
+    affiliated_authors_data = data.get('affiliated_authors_data', {})
+    self.affiliated_authors = self._affiliated_authors_from_dict(affiliated_authors_data)
+
+  @classmethod
+  def _affiliated_authors_from_dict(cls, affiliated_authors_data):
+    affiliated_authors = {}
+    for author_string, authors_list in affiliated_authors_data.items():
+      authors = [Author.from_dict(author_data) for author_data in authors_list]
+      affiliated_authors[author_string] = authors
+    return affiliated_authors
 
   @classmethod
   def format_header_row(cls):
     return ["Pubmed ID", "Location Identifier","Title","Authors",
             "E-publication Date", "Publication Date", "Publication Type",
-            "Journal", "Journal Abbreviation", "Volumne", "Issue",
+            "Journal", "Journal Abbreviation", "Volume", "Issue",
             "Pages", "Publication Year", "Affiliated Authors"]
 
   def format_row(self):
@@ -128,7 +137,7 @@ class Publication(dict):
     """Checks whether a human has denied that the given user_id is not the
     reported author_string for this Publication"""
     for author in self.affiliated_authors.get(author_string, []):
-      if author.user_id == user_id and author.confirmtion_status == Author.DENIED:
+      if author.user_id == user_id and author.confirmation_status == Author.DENIED:
         return True
     return False
 
@@ -173,3 +182,11 @@ class Publication(dict):
   def to_yaml(cls, publications):
     data = [publication.to_dict() for publication in publications.values()]
     return yaml.dump(data, default_flow_style=False)
+
+  @classmethod
+  def merge_publications(cls, old_publications, new_publications):
+    """If a publication already exists in old_publications, do not update it
+    with data from new_publications"""
+    publications = new_publications
+    publications.update(old_publications)
+    return publications

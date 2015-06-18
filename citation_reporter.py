@@ -94,19 +94,17 @@ if __name__=="__main__":
   with open(options.usersfile, "rU") as usersfile:
     users = User.load_csv(usersfile, options)
   users_count = len(users)
+  pubmed_ids = set()
   for user in users.values():
-    publications.update(Searcher.get_publications(user, options.start,
-                                                  options.end))
+    new_pubmed_ids = Searcher.get_pubmed_ids_for_user(user, options.start, options.end)
+    pubmed_ids.update(new_pubmed_ids)
 
   if options.verbose:
     print "\nFound", len(publications), "citations with at least one user matching the input queries"
   
-  publications={publication.pubmed_id: publication for publication in
-                publications.values() if publication.pubmed_id not in
-                exclude_list}
-  
-  publications = Publication.get_details(publications)
-  
+  new_publications = Publication.from_pubmed_ids(list(pubmed_ids))
+  publications = Publication.merge_publications(publications, new_publications)
+
   output=open(options.outputfile, "wb")
   csv_writer = csv.writer(output, lineterminator='\n') # remove line terminator to be windows friendly
   csv_writer.writerow(Publication.format_header_row())
@@ -114,6 +112,7 @@ if __name__=="__main__":
   out_count=0
   for publication in publications.values():
     publication.update_authors(users)
+
     if not publication.has_affiliated_authors():
       continue
     
