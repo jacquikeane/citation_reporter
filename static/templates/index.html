@@ -6,7 +6,12 @@
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
     <style>
-    .panel-heading
+    .pubmed_link
+    {
+      display: block;
+      padding: 10px;
+    }
+    .pubmed_title
     {
       overflow: hidden;
       text-overflow: ellipsis;
@@ -14,7 +19,7 @@
       display: block;
       padding: 10px
     }
-    .panel-heading:hover
+    .pubmed_title:hover
     {
       white-space: normal;
     }
@@ -33,7 +38,10 @@
         {% for pubmed_id, publication in publications.items() %}
         <div class="panel panel-info">
           <div class="panel-heading">
-            <h4><a href="http://www.ncbi.nlm.nih.gov/pubmed/{{ pubmed_id }}"><span class="label label-default">{{ pubmed_id }}</span></a> {{ publication['TI'] }}</h4>
+            <div class="row">
+              <div class="col-md-1 pubmed_link"><a href="http://www.ncbi.nlm.nih.gov/pubmed/{{ pubmed_id }}">{{ pubmed_id }}</a></div>
+              <div class="col-md-11 pubmed_title"> {{ publication['TI'] }}</div>
+            </div>
           </div>
           <div class="panel-body">
           </div>
