@@ -31,6 +31,15 @@ class Author(object):
     }
     return data
 
+  @classmethod
+  def from_dict(cls, author_data):
+    return Author(
+                  author_data["pubmed_string"],
+                  author_data["user_id"],
+                  User.from_dict(author_data["user"]),
+                  author_data["confirmation_status"],
+                 )
+
 class User(object):
   """A User is an object representing a person we're interested in.  This object
   has methods which can be used to evaluate whether the user is an Author of a
@@ -121,18 +130,21 @@ class User(object):
     return yaml.dump(data, default_flow_style=False)
 
   @classmethod
+  def from_dict(cls, user_data):
+    user = User()
+    user.ID = user_data.get("ID", "")
+    user.surname = user_data.get("surname", "")
+    user.first_name = user_data.get("first_name", "")
+    user.middle_initials = user_data.get("middle_initials", "")
+    user.affiliation = user_data.get("affiliation", "")
+    user.ORCID = user_data.get("ORCID", "")
+    user.Researchgate = user_data.get("Researchgate", "")
+    return user
+
+  @classmethod
   def from_yaml(self, yaml_data):
     data = yaml.load(yaml_data)
     users = {}
     for user_data in data:
-      user = User()
-      user.ID = user_data.get("ID", "")
-      user.surname = user_data.get("surname", "")
-      user.first_name = user_data.get("first_name", "")
-      user.middle_initials = user_data.get("middle_initials", "")
-      user.affiliation = user_data.get("affiliation", "")
-      user.ORCID = user_data.get("ORCID", "")
-      user.Researchgate = user_data.get("Researchgate", "")
-
-      users[user.ID] = user
+      users[user.ID] = User.from_dict(user_data)
     return users

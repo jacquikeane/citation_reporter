@@ -25,8 +25,8 @@ def main():
         
   parser.add_option("-o", "--output", action="store", dest="outputfile", help="output file name (in csv format)", type="string", metavar="FILE", default="")
   parser.add_option("-u", "--users", action="store", dest="usersfile", help="csv file containing two to six columns for each user: surname (required), first name (required), middle initial (optional), affiliation(optional), ORCID ID (optional), ResearchGate ID (optional)", type="string", metavar="FILE", default="")
-  parser.add_option("-i", "--include", action="store", dest="includefile", help="File containing PMIDs to add to matches (optional)", type="string", metavar="FILE", default="")
-  parser.add_option("-x", "--exclude", action="store", dest="excludefile", help="File containing list of PMIDs to exclude from matches (optional)", type="string", metavar="FILE", default="")
+  parser.add_option("-p", "--publications", action="store", dest="publicationsfile",
+                    help="publications file to be updated (in yaml format as output by this script)", type="string", metavar="FILE", default="")
   parser.add_option("-s", "--start_year", action="store", dest="start", help="Year to start search from [default = %default]", type="int", metavar="YEAR", default=START_YEAR)
   parser.add_option("-e", "--end_year", action="store", dest="end", help="Year to end search [default = present (<%default)]", type="int", metavar="YEAR", default=END_YEAR)
   parser.add_option("-A", "--affiliation", action="store", dest="affiliation", help="Default affiliation (applies to any user without an affiliation specified in the users file. [default = %default]", metavar="AFFILIATION", default=DEFAULT_AFFILIATION)
@@ -43,12 +43,6 @@ def check_command_line():
     do_exit=True
   if not os.path.isfile(options.usersfile):
     print "Cannot find users file:", options.usersfile
-    do_exit=True
-  if options.includefile!="" and not os.path.isfile(options.includefile):
-    print "Cannot find file:", options.includefile
-    do_exit=True
-  if options.excludefile!="" and not os.path.isfile(options.excludefile):
-    print "Cannot find file:", options.excludefile
     do_exit=True
   if options.outputfile=="":
     print "No output file specified"
@@ -77,18 +71,14 @@ if __name__=="__main__":
   (options, args)=main()
   check_command_line()
   
-  include_list=set([])
-  
-  if options.includefile!="":
-    for line in open(options.includefile):
-      include_list.add(line.strip())
-  
-  exclude_list=set([])
-  if options.excludefile!="":
-    for line in open(options.excludefile):
-      exclude_list.add(line.strip())
-  
-  publications={pubmed_id: Publication(pubmed_id, {'whitelist': True}) for pubmed_id in include_list}
+  try:
+    with open(options.publicationsfile, 'r') as publications_input:
+      publications = Publication.from_yaml(publications_input.read())
+  except IOError:
+    # The file is missing
+    logging.info("Could not load existing publications from %s, skipping" %
+                options.publicationsfile)
+    publications={}
   users={}
 
   with open(options.usersfile, "rU") as usersfile:
@@ -123,4 +113,11 @@ if __name__=="__main__":
     
   output.close()
   print "\n", out_count, "citations with at least one user matching the input queries have been printed to", options.outputfile
+  try:
+    with open(options.publicationsfile, 'w') as publications_output:
+      publications_output.write(Publication.to_yaml(publications))
+  except IOError:
+    # The file is missing
+    logging.info("Could not write existing publications to %s, skipping" %
+                options.publicationsfile)
   print "\nFinished\n"

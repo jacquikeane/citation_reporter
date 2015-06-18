@@ -70,9 +70,14 @@ class Publication(dict):
             "Journal", "Journal Abbreviation", "Volume", "Issue",
             "Pages", "Publication Year", "Affiliated Authors"]
 
+  @classmethod
+  def _internal_keys(cls):
+    return ["PMID", "LID", "TI", "AU", "DEP", "DP", "PT", "JT", "TA", "VI",
+            "IP", "PG"]
+
   def format_row(self):
     outlist=[]
-    for key in ["PMID", "LID", "TI", "AU", "DEP", "DP", "PT", "JT", "TA", "VI", "IP", "PG"]:
+    for key in self._internal_keys():
       value = self.get(key, "")
       if isinstance(value, list):
         value="; ".join(map(str,value))
@@ -97,24 +102,22 @@ class Publication(dict):
       if self._get_confirmed_author(author_string):
         # We already know who this author is, move on
         continue
-      self.affiliated_authors.setdefault(author_string, [])
       for user in users.values():
         if self._denies_author(author_string, user.ID):
           # Someone has already said this isn't the right User, move on
           continue
+        if self._user_already_author(author_string, user.ID):
+          # We already know this is a user, move on
+          continue
         if user.is_pseudonym(author_string):
           author = Author(author_string, user.ID, user, Author.POSSIBLE)
-          self.affiliated_authors[author_string].append(author)
+          self.affiliated_authors.setdefault(author_string, []).append(author)
 
-    likely_authors = self.most_likely_affiliated_authors()
-    if len(likely_authors) > 0:
-      matching_authors_string = ', '.join(author.user.full_name() for author in
-                                         likely_authors)
-      self.logger.info("%s matches %s authors: %s" % (self["TI"],
-                                                      len(likely_authors),
-                                                      matching_authors_string))
-    else:
-      self.logger.info("%s matches no authors in file" % self["TI"])
+  def _user_already_author(self, author_string, user_id):
+    for author in self.affiliated_authors.get(author_string, []):
+      if author.user_id == user_id:
+        return True
+    return False
 
   def _get_confirmed_author(self, author_string):
     """Returns a list of Author objects where a human has confirmed that one of
@@ -168,9 +171,17 @@ class Publication(dict):
     return likely_authors
 
   def to_dict(self):
-    keys = self.format_header_row()
-    values = self.format_row()
-    data = dict(zip(keys, values))
+    data = {}
+    # Most data is stored in a dictionary which mirrors the format used by the
+    # pubmed API.  This is not very human readable so when we store the data on
+    # disk we use nicer human readable keys, as used in the CSV output.
+    internal_keys = self._internal_keys()
+    external_keys = self.format_header_row()
+    for internal_key, external_key in zip(internal_keys,
+                                          external_keys):
+      value = self.get(internal_key)
+      if not value is None:
+        data[external_key] = value
     affiliated_authors_data = {}
     for author_string, authors in self.affiliated_authors.items():
       affiliated_authors_data[author_string] = [author.to_dict() for author in
@@ -182,6 +193,25 @@ class Publication(dict):
   def to_yaml(cls, publications):
     data = [publication.to_dict() for publication in publications.values()]
     return yaml.dump(data, default_flow_style=False)
+
+  @classmethod
+  def from_yaml(cls, publications_yaml):
+    data = yaml.load(publications_yaml)
+    publications = {}
+    for publication_data in data:
+      pubmed_id = publication_data["Pubmed ID"]
+      publication = Publication(pubmed_id)
+      for internal_key, external_key in zip(cls._internal_keys(),
+                                            cls.format_header_row()):
+        value = publication_data.get(external_key)
+        if not value is None:
+          publication[internal_key] = value
+
+      affiliated_authors_data = publication_data.get('affiliated_authors_data', {})
+      publication.affiliated_authors = cls._affiliated_authors_from_dict(affiliated_authors_data)
+
+      publications[pubmed_id] = publication
+    return publications
 
   @classmethod
   def merge_publications(cls, old_publications, new_publications):
