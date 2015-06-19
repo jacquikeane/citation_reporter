@@ -104,6 +104,9 @@ if __name__=="__main__":
 
     if not publication.has_affiliated_authors():
       continue
+
+    if publication.confirmation_status == Publication.DENIED:
+      continue
     
     publication_row = publication.format_row()
     

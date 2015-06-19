@@ -11,7 +11,7 @@
       display: block;
       padding: 10px;
     }
-    .pubmed_title
+    .pubmed_title,.pubmed_link
     {
       overflow: hidden;
       text-overflow: ellipsis;
@@ -34,14 +34,14 @@
   <body>
     <div class="container">
       <div class="row page-header">
-        <div class="col-md-12">
+        <div class="col-sm-12">
           <h1>Publication Reporter</h1>
           <p>This project isn't ready yet</p>
           <p><a href='/all_publications.csv'>Download all the publications</a></p>
         </div>
       </div>
       <div class="row" id="publication-data">
-        <div class="col-md-12">
+        <div class="col-sm-12">
           <div class="modal fade" id="trashModal" tabindex="-1" role="dialog">
             <div class="modal-dialog" role="document">
               <div class="modal-content">
@@ -59,7 +59,7 @@
             </div>
           </div>
         {% for pubmed_id, publication in publications.items() %}
-          {% if publication.has_affiliated_authors() %}
+          {% if publication.has_affiliated_authors() and publication.confirmation_status != 'denied' %}
           <div class="panel panel-info" id="pubmed_id_{{ pubmed_id }}">
             {% include "publication.html" %}
           </div>
@@ -84,7 +84,7 @@
           data: JSON.stringify(data),
           contentType: 'application/json',
           success: function(result) {
-            $( "#pubmed_id_" + pubmed_id ).html(result)
+            $( "#pubmed_id_" + pubmed_id ).html(result);
           }
         });
       });
@@ -94,6 +94,17 @@
         var pubmed_url = "http://www.ncbi.nlm.nih.gov/pubmed/" + pubmed_id;
         $("#trash_pubmed_id").html('<a href="' + pubmed_url + '">' + pubmed_id + '</a>');
         $("#trash_confirm").data('pubmed_id', pubmed_id);
+      });
+      $( "#trashModal" ).on('click', '#trash_confirm', function(event) {
+        var pubmed_id = $(this).data('pubmed_id');
+        var URL = "/publication/" + pubmed_id + "/";
+        $.ajax({
+          url: URL,
+          type: 'DELETE',
+          success: function(result) {
+            $( "#pubmed_id_" + pubmed_id ).remove();
+          }
+        });
       });
     </script>
   </body>

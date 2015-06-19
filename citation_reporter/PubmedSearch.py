@@ -35,6 +35,11 @@ class Searcher(object):
     return pubmed_ids
 
 class Publication(dict):
+
+  CONFIRMED='confirmed'
+  POSSIBLE='possible'
+  DENIED='denied'
+
   @classmethod
   def from_pubmed_ids(cls, pubmed_ids):
     Entrez.email = os.environ.get("EntrezEmail", "Your.Name.Here@example.org")
@@ -54,6 +59,7 @@ class Publication(dict):
       self[key] = value
     affiliated_authors_data = data.get('affiliated_authors_data', {})
     self.affiliated_authors = self._affiliated_authors_from_dict(affiliated_authors_data)
+    self.confirmation_status = Publication.POSSIBLE
 
   @classmethod
   def _affiliated_authors_from_dict(cls, affiliated_authors_data):
@@ -205,6 +211,7 @@ class Publication(dict):
       affiliated_authors_data[author_string] = [author.to_dict() for author in
                                                 authors]
     data['affiliated_authors_data'] = affiliated_authors_data
+    data['confirmation_status'] = self.confirmation_status
     return data
 
   @classmethod
@@ -227,6 +234,7 @@ class Publication(dict):
 
       affiliated_authors_data = publication_data.get('affiliated_authors_data', {})
       publication.affiliated_authors = cls._affiliated_authors_from_dict(affiliated_authors_data)
+      publication.confirmation_status = publication_data.get('confirmation_status', Publication.POSSIBLE)
 
       publications[pubmed_id] = publication
     return publications

@@ -5,6 +5,7 @@ import logging
 import os
 
 from citation_reporter.PubmedSearch import Publication
+from citation_reporter.Author import Author
 
 import flask
 from flask import Flask, render_template, request, jsonify, make_response
@@ -61,6 +62,20 @@ def update_publication_authors(pubmed_id, author_string):
                         (status, user_id, pubmed_id))
         continue
     return refresh_publication_page()
+
+@app.route('/publication/<pubmed_id>/', methods=['DELETE'])
+def delete_publication(pubmed_id):
+  try:
+    publications[pubmed_id].confirmation_status == Publication.DENIED
+    for author_string, authors in publications[pubmed_id].affiliated_authors.items():
+      for author in authors:
+        author.confirmation_status == Author.DENIED
+  except KeyError:
+    error = {"error": "Could not find publication with id '%s'" % pubmed_id}
+    return jsonify(**error), 404
+  else:
+    message = {"success": "Moved publication '%s' to trash" % pubmed_id}
+    return jsonify(**message)
 
 if __name__ == '__main__':
   try:
