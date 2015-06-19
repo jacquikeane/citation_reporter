@@ -46,40 +46,8 @@
         <div class="col-md-12">
         {% for pubmed_id, publication in publications.items() %}
           {% if publication.has_affiliated_authors() %}
-          <div class="panel panel-info">
-            <div class="panel-heading">
-              <div class="row">
-                <div class="col-md-1 pubmed_link"><a href="http://www.ncbi.nlm.nih.gov/pubmed/{{ pubmed_id }}">{{ pubmed_id }}</a></div>
-                <div class="col-md-11 pubmed_title"> {{ publication['TI'] }}</div>
-              </div>
-            </div>
-            <div class="panel-body">
-              {% for author_string in publication['AU'] %}
-              <div class="btn-group">
-                {% if publication._get_confirmed_author(author_string) %}
-                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">{{ publication._get_confirmed_author(author_string).user.full_name() }} <span class="caret"></span></button>
-                <ul class="dropdown-menu">
-                  {% for author in publication.affiliated_authors.get(author_string, []) %}
-                  <li>Who is '{{ author_string }}'?</li>
-                  <li><a href="#">{{ author.user.full_name() }}</a></li>
-                  {% endfor %}
-                  <li><a href="#">None of the above</a></li>
-                </ul>
-                {% elif publication._get_possible_authors(author_string)|length > 0 %}
-                <button type="button" class="btn btn-warning dropdown-toggle" data-toggle="dropdown">{{ publication._get_possible_authors(author_string)[0].user.full_name() }} <span class="caret"></span></button>
-                <ul class="dropdown-menu">
-                  <li>Who is '{{ author_string }}'?</li>
-                  {% for author in publication.affiliated_authors.get(author_string, []) %}
-                  <li><a href="#">{{ author.user.full_name() }}</a></li>
-                  {% endfor %}
-                  <li><a href="#">None of the above</a></li>
-                </ul>
-                {% else %}
-                <button type="button" class="btn btn-default">{{author_string}}</button>
-                {% endif %}
-              </div>
-              {% endfor %}
-            </div>
+          <div class="panel panel-info" id="pubmed_id_{{ pubmed_id }}">
+            {% include "publication.html" %}
           </div>
           {% endif %}
         {% endfor %}
