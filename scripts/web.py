@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
+import csv
 import logging
 import os
 
 from citation_reporter.PubmedSearch import Publication
 
 import flask
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, make_response
+from StringIO import StringIO
 
 parent_folder = os.path.abspath(os.path.dirname(__file__))
 template_folder = os.path.join(parent_folder, '..', 'templates')
@@ -21,6 +23,19 @@ logging.basicConfig(level=logging.DEBUG)
 def index():
   return render_template('index.html',
                         publications=publications)
+
+@app.route('/all_publications.csv')
+def download():
+  output_file = StringIO()
+  output_csv = csv.writer(output_file, lineterminator='\n') # remove line terminator to be windows friendly 
+  output_csv.writerow(Publication.format_header_row())
+  for publication in publications.values():
+    output_csv.writerow(publication.format_row())
+  output = make_response(output_file.getvalue())
+  output.headers["Content-Disposition"] = "attachment; filename=all_publications.csv"
+  output.headers["Content-type"] = "text/csv"
+  return output
+
 
 @app.route('/publication/<pubmed_id>/<author_string>/', methods=['GET', 'PUT'])
 def update_publication_authors(pubmed_id, author_string):
