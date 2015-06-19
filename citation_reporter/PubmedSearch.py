@@ -113,6 +113,24 @@ class Publication(dict):
           author = Author(author_string, user.ID, user, Author.POSSIBLE)
           self.affiliated_authors.setdefault(author_string, []).append(author)
 
+  def update_author_status(self, author_string, user_id, status):
+    if not status in [Author.DENIED, Author.CONFIRMED]:
+      raise KeyError("Status can only be set to %s or %s" % (Author.DENIED,
+                                                             Author.CONFIRMED))
+    if user_id == 'all' and status == Author.DENIED:
+      for author in self.affiliated_authors[author_string]:
+        author.confirmation_status = status
+    elif user_id != "all" and status == Author.CONFIRMED:
+      for author in self.affiliated_authors[author_string]:
+        if author.user_id == user_id:
+          author.confirmation_status = Author.CONFIRMED
+        else:
+          author.confirmation_status = Author.DENIED
+    elif status == Author.DENIED:
+      for author in self.affiliated_authors[author_string]:
+        if author.user_id == user_id:
+          author.confirmation_status = Author.DENIED
+
   def _user_already_author(self, author_string, user_id):
     for author in self.affiliated_authors.get(author_string, []):
       if author.user_id == user_id:
