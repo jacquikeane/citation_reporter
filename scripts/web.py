@@ -9,10 +9,12 @@ import flask
 from flask import Flask, render_template, request, jsonify
 
 parent_folder = os.path.abspath(os.path.dirname(__file__))
-template_folder = os.path.join(parent_folder, '..', 'static', 'templates')
+template_folder = os.path.join(parent_folder, '..', 'templates')
+static_folder = os.path.join(parent_folder, '..', 'static')
 publication_data_filename = os.path.join(parent_folder, '..', 'publications.yml') 
 
-app = Flask(__name__, template_folder=template_folder)
+app = Flask(__name__, template_folder=template_folder,
+            static_folder=static_folder)
 logging.basicConfig(level=logging.DEBUG)
 
 @app.route('/')
