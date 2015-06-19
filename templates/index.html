@@ -42,7 +42,7 @@
           <p>This project isn't ready yet</p>
         </div>
       </div>
-      <div class="row">
+      <div class="row" id="publication-data">
         <div class="col-md-12">
         {% for pubmed_id, publication in publications.items() %}
           {% if publication.has_affiliated_authors() %}
@@ -54,5 +54,26 @@
         </div>
       </div>
     </div>
+    <script>
+      $( "#publication-data" ).on('click', ".dropdown-menu>li>a", function(event) {
+        event.preventDefault();
+        var author_string = encodeURIComponent($(this).data('author_string'));
+        var pubmed_id = $(this).data('pubmed_id');
+        var author_id = $(this).data('author_id');
+        var confirmation_status = $(this).data('status');
+        var URL = "/publication/" + pubmed_id + "/" + author_string + "/";
+        var data = {};
+        data[author_id] = confirmation_status;
+        $.ajax({
+          url: URL,
+          type: 'PUT',
+          data: JSON.stringify(data),
+          contentType: 'application/json',
+          success: function(result) {
+            $( "#pubmed_id_" + pubmed_id ).html(result)
+          }
+        });
+      });
+    </script>
   </body>
 </html>  
