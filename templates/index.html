@@ -37,11 +37,27 @@
         <div class="col-md-12">
           <h1>Publication Reporter</h1>
           <p>This project isn't ready yet</p>
-	  <p><a href='/all_publications.csv'>Download all the publications</a></p>
+          <p><a href='/all_publications.csv'>Download all the publications</a></p>
         </div>
       </div>
       <div class="row" id="publication-data">
         <div class="col-md-12">
+          <div class="modal fade" id="trashModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h4>Are you sure that you want to delete <span id="trash_pubmed_id">UNKNOWN</span>?</h4>
+                </div>
+                <div class="modal-body">
+                  <p>Deleting this publication will automatically mark that none of the authors are affiliated with your institution and move the publication to the 'trash'</p>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                  <button type="button" class="btn btn-danger" data-dismiss="modal" id="trash_confirm">Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
         {% for pubmed_id, publication in publications.items() %}
           {% if publication.has_affiliated_authors() %}
           <div class="panel panel-info" id="pubmed_id_{{ pubmed_id }}">
@@ -72,6 +88,13 @@
           }
         });
       });
+      $( "#trashModal" ).on('show.bs.modal', function(event) {
+        var link = $(event.relatedTarget);
+        var pubmed_id = link.data("pubmed_id");
+        var pubmed_url = "http://www.ncbi.nlm.nih.gov/pubmed/" + pubmed_id;
+        $("#trash_pubmed_id").html('<a href="' + pubmed_url + '">' + pubmed_id + '</a>');
+        $("#trash_confirm").data('pubmed_id', pubmed_id);
+      });
     </script>
   </body>
-</html>  
+</html>
