@@ -1,8 +1,17 @@
+{%- macro makeTrashLink(isTrash, pubmed_id) -%}
+  {%- if isTrash -%}
+<a class="trashLink" href="#" data-toggle="modal" data-target="#trashModal" data-pubmed_id="{{pubmed_id}}" data-tooltip="tooltip" data-placement="top" title="Already in trash, confirm an author to restore"><span class="glyphicon glyphicon-trash"></span></a>
+  {%- else -%}
+<a class="trashLink" href="#" data-toggle="modal" data-target="#trashModal" data-pubmed_id="{{pubmed_id}}" data-tooltip="tooltip" data-placement="top" title="Move to trash"><span class="glyphicon glyphicon-trash"></span></a>
+  {%- endif -%}
+{%- endmacro -%}
+{% set trashLink=makeTrashLink(isTrash, pubmed_id) %}
+
             <div class="panel-heading">
               <div class="row">
                 <div class="col-xs-2 pubmed_link"><a href="http://www.ncbi.nlm.nih.gov/pubmed/{{ pubmed_id }}">{{ pubmed_id }}</a></div>
                 <div class="col-xs-9 pubmed_title"> {{ publication['TI'] }}</div>
-		<div class="col-xs-1 text-center"><a href="#" data-toggle="modal" data-target="#trashModal" data-pubmed_id="{{pubmed_id}}"><span class="glyphicon glyphicon-trash"></span></a></div>
+		<div class="col-xs-1 text-center">{{ trashLink }}</div>
               </div>
             </div>
             <div class="panel-body">

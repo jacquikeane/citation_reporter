@@ -45,30 +45,20 @@
       </div>
       <div class="row" id="publication-data">
         <div class="col-sm-2" id="sidebar">
-          <a href="{{ download_link }}" class="btn btn-primary btn-block">Download</a>
+	  <ul class="nav nav-pills nav-stacked">
+	    <li><a href="{{ download_link }}" class="btn btn-primary btn-block">Download</a></li>
+	    {% set other_page_name,other_page_url = other_page %}
+	    <li><a href="{{ other_page_url }}" class="btn btn-default btn-block">{{ other_page_name }}</a></li>
+          </ul>
         </div>
         <div class="col-sm-10">
-          <div class="modal fade" id="trashModal" tabindex="-1" role="dialog">
-            <div class="modal-dialog" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h4>Are you sure that you want to delete <span id="trash_pubmed_id">UNKNOWN</span>?</h4>
-                </div>
-                <div class="modal-body">
-                  <p>Deleting this publication will automatically mark that none of the authors are affiliated with your institution and move the publication to the 'trash'</p>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                  <button type="button" class="btn btn-danger" data-dismiss="modal" id="trash_confirm">Delete</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        {% for pubmed_id, publication in publications.items() %}
+          {% block trashModal %}
+	  {% endblock %}
+          {% for pubmed_id, publication in publications.items() %}
           <div class="panel panel-info" id="pubmed_id_{{ pubmed_id }}">
-            {% include "publication.html" %}
+            {% include 'publication.html' %}
           </div>
-        {% endfor %}
+          {% endfor %}
         </div>
       </div>
     </div>
@@ -89,27 +79,15 @@
           contentType: 'application/json',
           success: function(result) {
             $( "#pubmed_id_" + pubmed_id ).html(result);
+	    $('[data-tooltip="tooltip"]').tooltip();
           }
         });
       });
-      $( "#trashModal" ).on('show.bs.modal', function(event) {
-        var link = $(event.relatedTarget);
-        var pubmed_id = link.data("pubmed_id");
-        var pubmed_url = "http://www.ncbi.nlm.nih.gov/pubmed/" + pubmed_id;
-        $("#trash_pubmed_id").html('<a href="' + pubmed_url + '">' + pubmed_id + '</a>');
-        $("#trash_confirm").data('pubmed_id', pubmed_id);
-      });
-      $( "#trashModal" ).on('click', '#trash_confirm', function(event) {
-        var pubmed_id = $(this).data('pubmed_id');
-        var URL = "/publication/" + pubmed_id + "/";
-        $.ajax({
-          url: URL,
-          type: 'DELETE',
-          success: function(result) {
-            $( "#pubmed_id_" + pubmed_id ).remove();
-          }
-        });
-      });
+      $(function () {
+        $('[data-tooltip="tooltip"]').tooltip()
+      })
     </script>
+    {% block trashScripts %}
+    {% endblock %}
   </body>
 </html>

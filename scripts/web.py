@@ -7,7 +7,7 @@ from citation_reporter.PubmedSearch import Publication, Publications
 from citation_reporter.Author import Author
 
 import flask
-from flask import Flask, render_template, request, jsonify, make_response
+from flask import Flask, render_template, request, jsonify, make_response, url_for
 from StringIO import StringIO
 
 parent_folder = os.path.abspath(os.path.dirname(__file__))
@@ -21,9 +21,10 @@ logging.basicConfig(level=logging.DEBUG)
 
 @app.route('/')
 def publications():
-  return render_template('index.html',
+  return render_template('affiliated.html',
                         publications=publications.not_denied(),
-                        download_link='/publications.csv')
+                        other_page=('Trash', url_for('trash')),
+                        download_link=url_for('download'))
 
 @app.route('/publications.csv')
 def download():
@@ -37,9 +38,10 @@ def download():
 
 @app.route('/trash')
 def trash():
-  return render_template('index.html',
+  return render_template('trash.html',
                         publications=publications.denied(),
-                        download_link='/trash.csv')
+                        other_page=('Publications', url_for('publications')),
+                        download_link=url_for('download_trash'))
 
 @app.route('/trash.csv')
 def download_trash():
@@ -51,12 +53,18 @@ def download_trash():
   output.headers["Content-type"] = "text/csv"
   return output
 
+def refresh_publication_page(publication):
+  if publication.has_affiliated_authors():
+    isTrash=False
+  else:
+    isTrash=True
+  return render_template('publication.html',
+                         publication=publication,
+                         isTrash=isTrash,
+                         pubmed_id=publication.pubmed_id)
+
 @app.route('/publication/<pubmed_id>/<author_string>/', methods=['GET', 'PUT'])
 def update_publication_authors(pubmed_id, author_string):
-  def refresh_publication_page():
-    return render_template('publication.html',
-                           publication=publication,
-                           pubmed_id=pubmed_id)
   publication = publications.get(pubmed_id)
   if publication == None:
     error = {"error": "Couldn't find publication with pubmed_id: %s" %
@@ -74,10 +82,13 @@ def update_publication_authors(pubmed_id, author_string):
         logging.warning("Could not set status '%s' for user '%s' on publication '%s'; skipping" % 
                         (status, user_id, pubmed_id))
         continue
-    return refresh_publication_page()
+    return refresh_publication_page(publication)
 
-@app.route('/publication/<pubmed_id>/', methods=['DELETE'])
-def delete_publication(pubmed_id):
+@app.route('/publication/<pubmed_id>/', methods=['GET', 'DELETE'])
+def publication(pubmed_id):
+  if request.method == 'GET':
+    publication = publications[pubmed_id]
+    return refresh_publication_page(publication)
   try:
     publications[pubmed_id].deny()
   except KeyError:
