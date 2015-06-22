@@ -59,11 +59,9 @@
             </div>
           </div>
         {% for pubmed_id, publication in publications.items() %}
-          {% if publication.has_affiliated_authors() and publication.confirmation_status != 'denied' %}
           <div class="panel panel-info" id="pubmed_id_{{ pubmed_id }}">
             {% include "publication.html" %}
           </div>
-          {% endif %}
         {% endfor %}
         </div>
       </div>

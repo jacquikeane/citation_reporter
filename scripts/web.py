@@ -4,7 +4,7 @@ import csv
 import logging
 import os
 
-from citation_reporter.PubmedSearch import Publication
+from citation_reporter.PubmedSearch import Publication, Publications
 from citation_reporter.Author import Author
 
 import flask
@@ -23,7 +23,7 @@ logging.basicConfig(level=logging.DEBUG)
 @app.route('/')
 def index():
   return render_template('index.html',
-                        publications=publications)
+                        publications=publications.not_denied())
 
 @app.route('/all_publications.csv')
 def download():
@@ -66,13 +66,12 @@ def update_publication_authors(pubmed_id, author_string):
 @app.route('/publication/<pubmed_id>/', methods=['DELETE'])
 def delete_publication(pubmed_id):
   try:
-    publications[pubmed_id].confirmation_status == Publication.DENIED
-    for author_string, authors in publications[pubmed_id].affiliated_authors.items():
-      for author in authors:
-        author.confirmation_status == Author.DENIED
+    publications[pubmed_id].deny()
   except KeyError:
     error = {"error": "Could not find publication with id '%s'" % pubmed_id}
     return jsonify(**error), 404
+  except:
+    raise
   else:
     message = {"success": "Moved publication '%s' to trash" % pubmed_id}
     return jsonify(**message)
@@ -80,13 +79,13 @@ def delete_publication(pubmed_id):
 if __name__ == '__main__':
   try:
     with open(publication_data_filename, 'r') as publication_data_file:
-      publications = Publication.from_yaml(publication_data_file.read())
+      publications = Publications.from_yaml(publication_data_file.read())
   except IOError:
     logging.warning("Could not open %s to read publications" %
                     publication_data_filename)
     publications = {}
-  except:
-    logging.error("There was a problem parsing publications from %s" %
-                  publication_data_filename)
+  except Exception as e:
+    logging.error("There was a problem parsing publications from %s: %s" %
+                  (publication_data_filename, e))
     publications = {}
   app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))

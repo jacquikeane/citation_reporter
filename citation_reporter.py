@@ -11,7 +11,7 @@ import tempfile
 logging.basicConfig(level=logging.INFO)
 
 from citation_reporter.Author import User
-from citation_reporter.PubmedSearch import Searcher, Publication
+from citation_reporter.PubmedSearch import Searcher, Publication, Publications
 
 START_YEAR=2010
 END_YEAR=datetime.now().year+1
@@ -73,7 +73,7 @@ if __name__=="__main__":
   
   try:
     with open(options.publicationsfile, 'r') as publications_input:
-      publications = Publication.from_yaml(publications_input.read())
+      publications = Publications.from_yaml(publications_input.read())
   except IOError:
     # The file is missing
     logging.info("Could not load existing publications from %s, skipping" %
@@ -91,8 +91,8 @@ if __name__=="__main__":
 
   logging.info("Found %s citations with at least one user matching the input queries" % len(publications))
   
-  new_publications = Publication.from_pubmed_ids(list(pubmed_ids))
-  publications = Publication.merge_publications(publications, new_publications)
+  new_publications = Publications.from_pubmed_ids(list(pubmed_ids))
+  publications = Publications.merge(publications, new_publications)
 
   output=open(options.outputfile, "wb")
   csv_writer = csv.writer(output, lineterminator='\n') # remove line terminator to be windows friendly
@@ -117,7 +117,7 @@ if __name__=="__main__":
   logging.info("%s citations with at least one user matching the input queries have been printed to %s" % (out_count, options.outputfile))
   try:
     with open(options.publicationsfile, 'w') as publications_output:
-      publications_output.write(Publication.to_yaml(publications))
+      publications_output.write(Publications.to_yaml())
   except IOError:
     # The file is missing
     logging.info("Could not write existing publications to %s, skipping" %

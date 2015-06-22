@@ -34,23 +34,65 @@ class Searcher(object):
     pubmed_ids = records["IdList"]
     return pubmed_ids
 
-class Publication(dict):
-
-  CONFIRMED='confirmed'
-  POSSIBLE='possible'
-  DENIED='denied'
-
+class Publications(dict):
   @classmethod
   def from_pubmed_ids(cls, pubmed_ids):
     Entrez.email = os.environ.get("EntrezEmail", "Your.Name.Here@example.org")
     handle = Entrez.efetch(db="pubmed", id=pubmed_ids, retmode="text",
                            rettype="medline", retmax=10000)
     records = Medline.parse(handle)
-    publications = {}
+    publications = Publications()
     for record in records:
       pubmed_id = record['PMID']
       publications[pubmed_id] = Publication(pubmed_id, record)
     return publications
+
+  def to_yaml(self):
+    data = [publication.to_dict() for publication in self.values()]
+    return yaml.dump(data, default_flow_style=False)
+
+  @classmethod
+  def from_yaml(cls, publications_yaml):
+    data = yaml.load(publications_yaml)
+    publications = Publications()
+    for publication_data in data:
+      pubmed_id = publication_data["Pubmed ID"]
+      publication = Publication(pubmed_id)
+      for internal_key, external_key in zip(publication._internal_keys(),
+                                            publication.format_header_row()):
+        value = publication_data.get(external_key)
+        if not value is None:
+          publication[internal_key] = value
+
+      affiliated_authors_data = publication_data.get('affiliated_authors_data', {})
+      publication.affiliated_authors = publication._affiliated_authors_from_dict(affiliated_authors_data)
+      publication.confirmation_status = publication_data.get('confirmation_status', Publication.POSSIBLE)
+
+      publications[pubmed_id] = publication
+    logging.debug("Loaded %s publications" % len(publications))
+    return publications
+
+  @classmethod
+  def merge(cls, old_publications, new_publications):
+    """If a publication already exists in old_publications, do not update it
+    with data from new_publications"""
+    publications = new_publications
+    publications.update(old_publications)
+    return publications
+
+  def denied(self):
+    return {pubmed_id: publication for pubmed_id, publication in self.items() if
+            publication.confirmation_status == Publication.DENIED}
+
+  def not_denied(self):
+    return {pubmed_id: publication for pubmed_id, publication in self.items() if
+            publication.confirmation_status != Publication.DENIED}
+
+class Publication(dict):
+
+  CONFIRMED='confirmed'
+  POSSIBLE='possible'
+  DENIED='denied'
 
   def __init__(self, pubmed_id, data=None):
     data = {} if data == None else data
@@ -60,6 +102,16 @@ class Publication(dict):
     affiliated_authors_data = data.get('affiliated_authors_data', {})
     self.affiliated_authors = self._affiliated_authors_from_dict(affiliated_authors_data)
     self.confirmation_status = Publication.POSSIBLE
+
+  def deny(self):
+    """Deny that the publication is relevant
+
+    Set the status of all authors to denied and update the status of the
+    publication itself"""
+    self.confirmation_status = Publication.DENIED
+    for author_string, authors in self.affiliated_authors.items():
+      for author in authors:
+        author.confirmation_status = Author.DENIED
 
   @classmethod
   def _affiliated_authors_from_dict(cls, affiliated_authors_data):
@@ -213,36 +265,3 @@ class Publication(dict):
     data['affiliated_authors_data'] = affiliated_authors_data
     data['confirmation_status'] = self.confirmation_status
     return data
-
-  @classmethod
-  def to_yaml(cls, publications):
-    data = [publication.to_dict() for publication in publications.values()]
-    return yaml.dump(data, default_flow_style=False)
-
-  @classmethod
-  def from_yaml(cls, publications_yaml):
-    data = yaml.load(publications_yaml)
-    publications = {}
-    for publication_data in data:
-      pubmed_id = publication_data["Pubmed ID"]
-      publication = Publication(pubmed_id)
-      for internal_key, external_key in zip(cls._internal_keys(),
-                                            cls.format_header_row()):
-        value = publication_data.get(external_key)
-        if not value is None:
-          publication[internal_key] = value
-
-      affiliated_authors_data = publication_data.get('affiliated_authors_data', {})
-      publication.affiliated_authors = cls._affiliated_authors_from_dict(affiliated_authors_data)
-      publication.confirmation_status = publication_data.get('confirmation_status', Publication.POSSIBLE)
-
-      publications[pubmed_id] = publication
-    return publications
-
-  @classmethod
-  def merge_publications(cls, old_publications, new_publications):
-    """If a publication already exists in old_publications, do not update it
-    with data from new_publications"""
-    publications = new_publications
-    publications.update(old_publications)
-    return publications
