@@ -29,6 +29,10 @@
       line-height: 1.42857143;
       white-space: nowrap;
     }
+    #sidebar>.btn
+    {
+      white-space: normal;
+    }
     </style>
   </head>
   <body>
@@ -37,11 +41,13 @@
         <div class="col-sm-12">
           <h1>Publication Reporter</h1>
           <p>This project isn't ready yet</p>
-          <p><a href='/all_publications.csv'>Download all the publications</a></p>
         </div>
       </div>
       <div class="row" id="publication-data">
-        <div class="col-sm-12">
+        <div class="col-sm-2" id="sidebar">
+          <a href='/all_publications.csv' class="btn btn-primary btn-block">Download</a>
+        </div>
+        <div class="col-sm-10">
           <div class="modal fade" id="trashModal" tabindex="-1" role="dialog">
             <div class="modal-dialog" role="document">
               <div class="modal-content">
