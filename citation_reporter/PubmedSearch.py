@@ -52,6 +52,7 @@ class Publications(dict):
     for record in records:
       pubmed_id = record['PMID']
       publications[pubmed_id] = Publication(pubmed_id, record)
+    logging.debug("Fetched %s publications from Entrez" % len(publications))
     return publications
 
   def to_csv(self, output_file):
@@ -92,6 +93,7 @@ class Publications(dict):
     with data from new_publications"""
     publications = new_publications
     publications.update(old_publications)
+    logging.debug("Now got %s publications" % len(publications))
     return publications
 
   def denied(self):
@@ -101,6 +103,17 @@ class Publications(dict):
   def not_denied(self):
     return Publications([publication for publication in self.values() if
             publication.confirmation_status != Publication.DENIED])
+
+  def get_users(self):
+    users = {}
+    for publication in self.values():
+      for author_string, authors in publication.affiliated_authors.items():
+        for author in authors:
+          if author.user_id not in users:
+            users[author.user_id] = author.user
+    logging.debug("Loaded %s users" % len(users))
+    return users
+
 
 class Publication(dict):
 
@@ -187,6 +200,10 @@ class Publication(dict):
 
     if not self.has_affiliated_authors():
       self.deny()
+    elif self.has_confirmed_author():
+      self.confirmation_status = Publication.CONFIRMED
+    else:
+      self.confirmation_status = Publication.POSSIBLE
 
   def update_author_status(self, author_string, user_id, status):
     if not status in [Author.DENIED, Author.CONFIRMED]:

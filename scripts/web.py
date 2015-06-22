@@ -2,12 +2,14 @@
 
 import logging
 import os
+import re
 
 from citation_reporter.PubmedSearch import Publication, Publications
 from citation_reporter.Author import Author
 
 import flask
-from flask import Flask, render_template, request, jsonify, make_response, url_for
+from flask import Flask, render_template, request, jsonify, \
+                         make_response, url_for, redirect
 from StringIO import StringIO
 
 parent_folder = os.path.abspath(os.path.dirname(__file__))
@@ -19,11 +21,29 @@ app = Flask(__name__, template_folder=template_folder,
             static_folder=static_folder)
 logging.basicConfig(level=logging.DEBUG)
 
-@app.route('/')
-def publications():
+def parse_pubmed_ids(publications_string):
+  publication_ids = publications_string.replace(',', ' ').replace(';', ' ').split(' ')
+  publication_ids = [pid for pid in publication_ids if re.match('^\d{8}$', pid)]
+  return publication_ids
+
+@app.route('/', methods=["GET", "POST"])
+def publications_page():
+  global publications
+  if request.method == 'POST':
+    publication_ids = parse_pubmed_ids(request.form['pubmed_ids'])
+    logging.debug("; ".join(map(str, publication_ids)))
+    new_publications = Publications.from_pubmed_ids(publication_ids)
+    for publication in new_publications.values():
+      publication.update_authors(users)
+      logging.debug("Found %s potential authors for %s" %
+                    (len(publication.most_likely_affiliated_authors()),
+                     publication.pubmed_id))
+      logging.debug(publication.confirmation_status)
+    publications = Publications.merge(publications, new_publications)
+    return redirect(url_for('publications_page'))
   return render_template('affiliated.html',
                         publications=publications.not_denied(),
-                        other_page=('Trash', url_for('trash')),
+                        other_page=('Trash', url_for('trash_page')),
                         download_link=url_for('download'))
 
 @app.route('/publications.csv')
@@ -37,10 +57,10 @@ def download():
   return output
 
 @app.route('/trash')
-def trash():
+def trash_page():
   return render_template('trash.html',
                         publications=publications.denied(),
-                        other_page=('Publications', url_for('publications')),
+                        other_page=('Publications', url_for('publications_page')),
                         download_link=url_for('download_trash'))
 
 @app.route('/trash.csv')
@@ -111,5 +131,10 @@ if __name__ == '__main__':
   except Exception as e:
     logging.error("There was a problem parsing publications from %s: %s" %
                   (publication_data_filename, e))
-    publications = {}
+    publications = Publications([])
+
+  users = publications.get_users()
+  for publication in publications.values():
+    publication.update_authors(users)
+
   app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
