@@ -20,17 +20,34 @@ app = Flask(__name__, template_folder=template_folder,
 logging.basicConfig(level=logging.DEBUG)
 
 @app.route('/')
-def index():
+def publications():
   return render_template('index.html',
-                        publications=publications.not_denied())
+                        publications=publications.not_denied(),
+                        download_link='/publications.csv')
 
-@app.route('/all_publications.csv')
+@app.route('/publications.csv')
 def download():
   output_file = StringIO()
   output_publications = publications.not_denied()
   output_csv = output_publications.to_csv(output_file)
   output = make_response(output_file.getvalue())
-  output.headers["Content-Disposition"] = "attachment; filename=all_publications.csv"
+  output.headers["Content-Disposition"] = "attachment; filename=publications.csv"
+  output.headers["Content-type"] = "text/csv"
+  return output
+
+@app.route('/trash')
+def trash():
+  return render_template('index.html',
+                        publications=publications.denied(),
+                        download_link='/trash.csv')
+
+@app.route('/trash.csv')
+def download_trash():
+  output_file = StringIO()
+  output_publications = publications.denied()
+  output_csv = output_publications.to_csv(output_file)
+  output = make_response(output_file.getvalue())
+  output.headers["Content-Disposition"] = "attachment; filename=trash_publications.csv"
   output.headers["Content-type"] = "text/csv"
   return output
 

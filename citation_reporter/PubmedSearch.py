@@ -208,6 +208,10 @@ class Publication(dict):
 
     if not self.has_affiliated_authors():
       self.confirmation_status = Publication.DENIED
+    elif self.has_confirmed_author():
+      self.confirmation_status = Publication.CONFIRMED
+    else:
+      self.confirmation_status = Publication.POSSIBLE
 
   def _user_already_author(self, author_string, user_id):
     for author in self.affiliated_authors.get(author_string, []):
@@ -238,6 +242,13 @@ class Publication(dict):
     for author in self.affiliated_authors.get(author_string, []):
       if author.user_id == user_id and author.confirmation_status == Author.DENIED:
         return True
+    return False
+
+  def has_confirmed_author(self):
+    for authors in self.affiliated_authors.values():
+      for author in authors:
+        if author.confirmation_status == Author.CONFIRMED:
+          return True
     return False
 
   def has_affiliated_authors(self):
