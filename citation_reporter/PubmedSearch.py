@@ -1,3 +1,4 @@
+import csv
 import logging
 import os
 import yaml
@@ -53,6 +54,12 @@ class Publications(dict):
       publications[pubmed_id] = Publication(pubmed_id, record)
     return publications
 
+  def to_csv(self, output_file):
+    output_csv = csv.writer(output_file, lineterminator='\n') # remove line terminator to be windows friendly
+    output_csv.writerow(Publication.format_header_row())
+    for publication in self.values():
+      output_csv.writerow(publication.format_row())
+
   def to_yaml(self):
     data = [publication.to_dict() for publication in self.values()]
     return yaml.dump(data, default_flow_style=False)
@@ -61,6 +68,7 @@ class Publications(dict):
   def from_yaml(cls, publications_yaml):
     data = yaml.load(publications_yaml)
     publications = Publications()
+    data = [] if data == None else data # publications file might be empty
     for publication_data in data:
       pubmed_id = publication_data["Pubmed ID"]
       publication = Publication(pubmed_id)
@@ -177,6 +185,9 @@ class Publication(dict):
           author = Author(author_string, user.ID, user, Author.POSSIBLE)
           self.affiliated_authors.setdefault(author_string, []).append(author)
 
+    if not self.has_affiliated_authors():
+      self.deny()
+
   def update_author_status(self, author_string, user_id, status):
     if not status in [Author.DENIED, Author.CONFIRMED]:
       raise KeyError("Status can only be set to %s or %s" % (Author.DENIED,
@@ -194,6 +205,9 @@ class Publication(dict):
       for author in self.affiliated_authors[author_string]:
         if author.user_id == user_id:
           author.confirmation_status = Author.DENIED
+
+    if not self.has_affiliated_authors():
+      self.confirmation_status = Publication.DENIED
 
   def _user_already_author(self, author_string, user_id):
     for author in self.affiliated_authors.get(author_string, []):

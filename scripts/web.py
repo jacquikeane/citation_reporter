@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import csv
 import logging
 import os
 
@@ -28,15 +27,12 @@ def index():
 @app.route('/all_publications.csv')
 def download():
   output_file = StringIO()
-  output_csv = csv.writer(output_file, lineterminator='\n') # remove line terminator to be windows friendly 
-  output_csv.writerow(Publication.format_header_row())
-  for publication in publications.values():
-    output_csv.writerow(publication.format_row())
+  output_publications = publications.not_denied()
+  output_csv = output_publications.to_csv(output_file)
   output = make_response(output_file.getvalue())
   output.headers["Content-Disposition"] = "attachment; filename=all_publications.csv"
   output.headers["Content-type"] = "text/csv"
   return output
-
 
 @app.route('/publication/<pubmed_id>/<author_string>/', methods=['GET', 'PUT'])
 def update_publication_authors(pubmed_id, author_string):

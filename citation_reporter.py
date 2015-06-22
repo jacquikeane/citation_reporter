@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import csv
 import os, sys
 import xml.etree.ElementTree as ET
 from optparse import OptionParser
@@ -94,30 +93,19 @@ if __name__=="__main__":
   new_publications = Publications.from_pubmed_ids(list(pubmed_ids))
   publications = Publications.merge(publications, new_publications)
 
-  output=open(options.outputfile, "wb")
-  csv_writer = csv.writer(output, lineterminator='\n') # remove line terminator to be windows friendly
-  csv_writer.writerow(Publication.format_header_row())
-  
-  out_count=0
   for publication in publications.values():
     publication.update_authors(users)
 
-    if not publication.has_affiliated_authors():
-      continue
-
-    if publication.confirmation_status == Publication.DENIED:
-      continue
-    
-    publication_row = publication.format_row()
-    
-    out_count+=1
-    csv_writer.writerow(publication_row)
-    
+  output=open(options.outputfile, "wb")
+  affiliated_publications = publications.not_denied()
+  affiliated_publications.to_csv(output)
   output.close()
-  logging.info("%s citations with at least one user matching the input queries have been printed to %s" % (out_count, options.outputfile))
+
+  logging.info("%s citations with at least one user matching the input queries have been printed to %s" % (
+    len(affiliated_publications), options.outputfile))
   try:
     with open(options.publicationsfile, 'w') as publications_output:
-      publications_output.write(Publications.to_yaml())
+      publications_output.write(publications.to_yaml())
   except IOError:
     # The file is missing
     logging.info("Could not write existing publications to %s, skipping" %
