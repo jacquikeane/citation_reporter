@@ -35,6 +35,12 @@ class Searcher(object):
     return pubmed_ids
 
 class Publications(dict):
+  def __init__(self, publications=None):
+    publications = [] if publications == None else publications
+    for publication in publications:
+      pubmed_id = publication['PMID']
+      self[pubmed_id] = publication
+
   @classmethod
   def from_pubmed_ids(cls, pubmed_ids):
     Entrez.email = os.environ.get("EntrezEmail", "Your.Name.Here@example.org")
@@ -81,12 +87,12 @@ class Publications(dict):
     return publications
 
   def denied(self):
-    return {pubmed_id: publication for pubmed_id, publication in self.items() if
-            publication.confirmation_status == Publication.DENIED}
+    return Publications([publication for publication in self.values() if
+            publication.confirmation_status == Publication.DENIED])
 
   def not_denied(self):
-    return {pubmed_id: publication for pubmed_id, publication in self.items() if
-            publication.confirmation_status != Publication.DENIED}
+    return Publications([publication for publication in self.values() if
+            publication.confirmation_status != Publication.DENIED])
 
 class Publication(dict):
 

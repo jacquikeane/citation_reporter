@@ -14,7 +14,7 @@ from StringIO import StringIO
 parent_folder = os.path.abspath(os.path.dirname(__file__))
 template_folder = os.path.join(parent_folder, '..', 'templates')
 static_folder = os.path.join(parent_folder, '..', 'static')
-publication_data_filename = os.path.join(parent_folder, '..', 'publications.yml') 
+publication_data_filename = os.path.join(parent_folder, '..', 'publications.yml')
 
 app = Flask(__name__, template_folder=template_folder,
             static_folder=static_folder)
@@ -83,7 +83,7 @@ if __name__ == '__main__':
   except IOError:
     logging.warning("Could not open %s to read publications" %
                     publication_data_filename)
-    publications = {}
+    publications = Publications([])
   except Exception as e:
     logging.error("There was a problem parsing publications from %s: %s" %
                   (publication_data_filename, e))
