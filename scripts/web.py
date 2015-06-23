@@ -65,7 +65,6 @@ def publications_page():
   return render_template('affiliated.html',
                         publications=publications.not_denied(),
                         users=users,
-                        other_page=('Trash', url_for('trash_page')),
                         download_link=url_for('download'))
 
 @app.route('/user/<user_id>/')
@@ -75,8 +74,7 @@ def user_page(user_id):
   return render_template('affiliated.html',
                         publications=publications.filter_by_user_id(user_id),
                         users=users,
-                        user_name=users[user_id].full_name(),
-                        other_page=('Trash', url_for('trash_page')),
+                        user_title="Publications for %s" % users[user_id].full_name(),
                         download_link=url_for('download', user_id=user_id))
 
 @app.route('/publications.csv')
@@ -105,7 +103,6 @@ def trash_page():
   return render_template('trash.html',
                         publications=publications.denied().has_potential_author(),
                         users=users,
-                        other_page=('Publications', url_for('publications_page')),
                         download_link=url_for('download_trash'))
 
 @app.route('/trash.csv')
@@ -123,7 +120,7 @@ def unaffiliated():
   return render_template('trash.html',
                         publications=publications.denied().has_no_potential_author(),
                         users=users,
-                        other_page=('Publications', url_for('publications_page')),
+                        user_title="Unaffiliated publications",
                         download_link=url_for('download_unaffiliated'))
 
 @app.route('/unaffiliated.csv')

@@ -29,13 +29,21 @@
       line-height: 1.42857143;
       white-space: nowrap;
     }
-    #sidebar>.btn
+    #sidebar a
     {
       white-space: normal;
     }
-    #add-publications .row
+    div#publication-data
     {
-      margin-bottom: 15px;
+      margin-top: -15px;
+    }
+    div#authors-list {
+      margin-top: 30px;
+    }
+    div#authors-list ul{
+      list-style-type: none;
+      margin-left: 0;
+      padding-left: 0;
     }
     </style>
   </head>
@@ -65,18 +73,18 @@
         <div class="col-sm-2" id="sidebar">
           <ul class="nav nav-pills nav-stacked">
             <li><a href="{{ download_link }}" class="btn btn-primary btn-block">Download</a></li>
-            {% set other_page_name,other_page_url = other_page %}
-            <li><a href="{{ other_page_url }}" class="btn btn-default btn-block">{{ other_page_name }}</a></li>
+            <li><a href="/" class="btn btn-default btn-block">All publications</a></li>
+            <li><a href="/trash/" class="btn btn-default btn-block">Trash</a></li>
+            <li><a href="/unaffiliated/" class="btn btn-default btn-block">No potential authors</a></li>
           </ul>
-          <h4>Affiliated Authors</h4>
-          <ul>
-            <li><a href="/">All publications</a></li>
-            <li><a href="/unaffiliated/">No potential authors</a></li>
-            <li><a href="/trash/">Trash</a></li>
-          {% for user_id, user in users.items() %}
-            <li><a href="/user/{{user_id}}/">{{ user.ordered_name() }}</a></li>
-          {% endfor %}
-          </ul>
+          <div id="authors-list">
+            <h4>Affiliated Authors</h4>
+            <ul>
+            {% for user_id, user in users.items() %}
+              <li><a href="/user/{{user_id}}/">{{ user.ordered_name() }}</a></li>
+            {% endfor %}
+            </ul>
+          </div>
         </div>
         <div class="col-sm-10">
           {% if not isTrash %}
@@ -97,8 +105,8 @@
             <div class="row">
               {% block trashModal %}
               {% endblock %}
-              {% if user_name is defined %}
-              <h2>Publications for {{ user_name }}</h2>
+              {% if user_title is defined %}
+              <h2>{{ user_title }}</h2>
               {% endif %}
               {% for year, year_publications in publications.group_by_year().items() %}
               <h3>Publications from {{ year }}</h3>
