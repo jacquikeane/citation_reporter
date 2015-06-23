@@ -182,6 +182,7 @@ class Publication(dict):
     by pubmed to possible Users via a list of Author objects.  Author objects
     include the pubmed provided string, a user_id, a User object and whether or
     not a human has confirmed that this is a correct match"""
+    self.setdefault('AU', [])
     for author_string in self["AU"]:
       author_string=author_string.strip()
       if self._get_confirmed_author(author_string):

@@ -47,6 +47,20 @@
           <p>This project isn't ready yet</p>
         </div>
       </div>
+      {% with messages=get_flashed_messages() %}
+        {% if messages %}
+      <div class="row">
+          {% for message in messages %}
+        <div class="alert alert-success alert-dismissible fade in">
+          <button type="button" class="close" data-dismiss="alert">
+            <span>x</span>
+          </button>
+          {{ message }}
+        </div>
+          {% endfor %}
+      </div>
+        {% endif %}
+      {% endwith %}
       <div class="row">
         <div class="col-sm-2" id="sidebar">
           <ul class="nav nav-pills nav-stacked">

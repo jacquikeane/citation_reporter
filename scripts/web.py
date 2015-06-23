@@ -9,7 +9,7 @@ from citation_reporter.Author import Author
 
 import flask
 from flask import Flask, render_template, request, jsonify, \
-                         make_response, url_for, redirect
+                         make_response, url_for, redirect, flash
 from StringIO import StringIO
 
 parent_folder = os.path.abspath(os.path.dirname(__file__))
@@ -26,18 +26,38 @@ def parse_pubmed_ids(publications_string):
   publication_ids = [pid for pid in publication_ids if re.match('^\d{8}$', pid)]
   return publication_ids
 
+def new_publications_stats(new_publications):
+  new_trash_publications_set = set(new_publications.denied().keys())
+  new_publication_set = set(new_publications.keys())
+  existing_publication_set = set(publications.keys())
+  new_publications_count = len(new_publication_set.difference(existing_publication_set))
+  new_trash_publications_count = len(new_trash_publications_set.difference(existing_publication_set))
+  return (new_publications_count, new_trash_publications_count)
+
+def message_about_new_publications(new_publications):
+  new_publications_count, new_trash_publications_count = new_publications_stats(new_publications)
+  if new_publications_count == 1:
+    message = "Added 1 new publication"
+  else:
+    message = "Added %s new publications" % new_publications_count
+  if new_trash_publications_count > 0:
+    message += "; %s moved straight to trash because no authors found" % new_trash_publications_count
+  logging.debug(message)
+  return message
+
 @app.route('/', methods=["GET", "POST"])
 def publications_page():
   global publications
   if request.method == 'POST':
     publication_ids = parse_pubmed_ids(request.form['pubmed_ids'])
-    logging.debug("New publications: %s" % "; ".join(map(str, publication_ids)))
+    logging.debug("Request to add publications: %s" % "; ".join(map(str, publication_ids)))
     new_publications = Publications.from_pubmed_ids(publication_ids)
     for publication in new_publications.values():
       publication.update_authors(users)
       logging.debug("Found %s potential authors for %s" %
                     (len(publication.most_likely_affiliated_authors()),
                      publication.pubmed_id))
+    flash(message_about_new_publications(new_publications))
     publications = Publications.merge(publications, new_publications)
     return redirect(url_for('publications_page'))
   return render_template('affiliated.html',
@@ -136,4 +156,5 @@ if __name__ == '__main__':
   for publication in publications.values():
     publication.update_authors(users)
 
+  app.secret_key = os.environ.get("FLASK_SECRET_KEY", os.urandom(24))
   app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
