@@ -68,6 +68,12 @@
             {% set other_page_name,other_page_url = other_page %}
             <li><a href="{{ other_page_url }}" class="btn btn-default btn-block">{{ other_page_name }}</a></li>
           </ul>
+          <h4>Affiliated Authors</h4>
+          <ul>
+          {% for user_id, user in publications.get_users().items() %}
+            <li><a href="/user/{{user_id}}">{{ user.ordered_name() }}</a></li>
+          {% endfor %}
+          </ul>
         </div>
         <div class="col-sm-10">
           {% if not isTrash %}

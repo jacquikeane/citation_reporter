@@ -88,6 +88,13 @@ class User(object):
   def primary_name(self):
     return "%s %s" % (self.surname, self.first_name[0])
 
+  def ordered_name(self):
+    # Name used for sorting users
+    if self.middle_initials:
+      return "%s, %s %s" % (self.surname, self.first_name, self.middle_initials)
+    else:
+      return "%s, %s" % (self.surname, self.first_name)
+
   def all_names(self):
     names = [self.primary_name()]
     names.append("%s %s" % (self.surname, self.first_name))
