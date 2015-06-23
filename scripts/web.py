@@ -65,6 +65,7 @@ def publications_page():
   return render_template('affiliated.html',
                         publications=publications.not_denied(),
                         users=users,
+                        user_title="All affiliated publications",
                         download_link=url_for('download'))
 
 @app.route('/user/<user_id>/')
@@ -102,6 +103,7 @@ def download():
 def trash_page():
   return render_template('trash.html',
                         publications=publications.denied().has_potential_author(),
+                        user_title="Trash",
                         users=users,
                         download_link=url_for('download_trash'))
 
