@@ -31,14 +31,13 @@ def publications_page():
   global publications
   if request.method == 'POST':
     publication_ids = parse_pubmed_ids(request.form['pubmed_ids'])
-    logging.debug("; ".join(map(str, publication_ids)))
+    logging.debug("New publications: %s" % "; ".join(map(str, publication_ids)))
     new_publications = Publications.from_pubmed_ids(publication_ids)
     for publication in new_publications.values():
       publication.update_authors(users)
       logging.debug("Found %s potential authors for %s" %
                     (len(publication.most_likely_affiliated_authors()),
                      publication.pubmed_id))
-      logging.debug(publication.confirmation_status)
     publications = Publications.merge(publications, new_publications)
     return redirect(url_for('publications_page'))
   return render_template('affiliated.html',
