@@ -88,10 +88,13 @@
             <div class="row">
               {% block trashModal %}
               {% endblock %}
-              {% for pubmed_id, publication in publications.items() %}
+              {% for year, year_publications in publications.group_by_year().items() %}
+              <h3>Publications from {{ year }}</h3>
+                {% for pubmed_id, publication in year_publications.sorted_by_date().items() %}
               <div class="panel panel-info" id="pubmed_id_{{ pubmed_id }}">
-                {% include 'publication.html' %}
+                  {% include 'publication.html' %}
               </div>
+                {% endfor %}
               {% endfor %}
             </div>
           </div>

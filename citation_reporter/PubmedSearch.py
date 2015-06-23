@@ -1,9 +1,11 @@
 import csv
 import logging
 import os
+import re
 import yaml
 
 from Bio import Entrez, Medline
+from collections import OrderedDict
 from datetime import datetime
 from StringIO import StringIO
 
@@ -35,8 +37,9 @@ class Searcher(object):
     pubmed_ids = records["IdList"]
     return pubmed_ids
 
-class Publications(dict):
+class Publications(OrderedDict):
   def __init__(self, publications=None):
+    super(Publications, self).__init__()
     publications = [] if publications == None else publications
     for publication in publications:
       pubmed_id = publication['PMID']
@@ -103,6 +106,28 @@ class Publications(dict):
   def not_denied(self):
     return Publications([publication for publication in self.values() if
             publication.confirmation_status != Publication.DENIED])
+
+  def sorted_by_date(self):
+    publications_list = list(self.values())
+    publication_date = lambda publication: publication['DP']
+    return Publications(sorted(publications_list, key=publication_date))
+
+  def group_by_year(self):
+    years = {}
+    def parse_year(date_string):
+      try:
+        (year_string,) = re.findall("\d{4}", date_string)
+      except ValueError:
+        logging.debug("Could not parse %s into a year" % date_string)
+        return "unknown year"
+      return int(year_string)
+    for pubmed_id, publication in self.items():
+      year = parse_year(publication['DP'])
+      years.setdefault(year, Publications())[pubmed_id] = publication
+    def year(year_publications):
+      year, publications = year_publications
+      return year
+    return OrderedDict(sorted(years.items(), key=year, reverse=True))
 
   def get_users(self):
     users = {}
