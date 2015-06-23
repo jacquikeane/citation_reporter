@@ -71,7 +71,11 @@ def publications_page():
 @app.route('/user/<user_id>/')
 def user_page(user_id):
   if not user_id in users:
-    abort(404)
+    return render_template('affiliated.html',
+                          publications=Publications(),
+                          users=users,
+                          user_title="Unknown user",
+                          download_link='#'), 404
   return render_template('affiliated.html',
                         publications=publications.filter_by_user_id(user_id),
                         users=users,
