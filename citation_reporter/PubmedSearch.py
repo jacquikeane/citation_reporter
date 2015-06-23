@@ -53,7 +53,10 @@ class Publications(OrderedDict):
     records = Medline.parse(handle)
     publications = Publications()
     for record in records:
-      pubmed_id = record['PMID']
+      pubmed_id = record.get('PMID')
+      if not pubmed_id:
+        logging.error("Problem creating publication from %s; skipping" % record)
+        continue
       publications[pubmed_id] = Publication(pubmed_id, record)
     logging.debug("Fetched %s publications from Entrez" % len(publications))
     return publications
@@ -107,6 +110,20 @@ class Publications(OrderedDict):
     return Publications([publication for publication in self.values() if
             publication.confirmation_status != Publication.DENIED])
 
+  def has_potential_author(self):
+    publications = Publications()
+    for pubmed_id, publication in self.items():
+      if len(publication.affiliated_authors) > 0:
+        publications[pubmed_id] = publication
+    return publications
+
+  def has_no_potential_author(self):
+    publications = Publications()
+    for pubmed_id, publication in self.items():
+      if len(publication.affiliated_authors) == 0:
+        publications[pubmed_id] = publication
+    return publications
+
   def sorted_by_date(self):
     publications_list = list(self.values())
     publication_date = lambda publication: publication['DP']
@@ -128,6 +145,18 @@ class Publications(OrderedDict):
       year, publications = year_publications
       return year
     return OrderedDict(sorted(years.items(), key=year, reverse=True))
+
+  def filter_by_user_id(self, user_id, include_denied=True):
+    publications = Publications()
+    for pubmed_id, publication in self.items():
+      for author_string, authors in publication.affiliated_authors.items():
+        for author in authors:
+          is_correct_user = author.user_id == user_id
+          is_denied = author.confirmation_status == Author.DENIED
+          if is_correct_user and (include_denied or not is_denied):
+            publications[pubmed_id] = publication
+            continue
+    return publications
 
   def get_users(self):
     users = {}

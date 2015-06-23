@@ -70,8 +70,11 @@
           </ul>
           <h4>Affiliated Authors</h4>
           <ul>
-          {% for user_id, user in publications.get_users().items() %}
-            <li><a href="/user/{{user_id}}">{{ user.ordered_name() }}</a></li>
+            <li><a href="/">All publications</a></li>
+            <li><a href="/unaffiliated/">No potential authors</a></li>
+            <li><a href="/trash/">Trash</a></li>
+          {% for user_id, user in users.items() %}
+            <li><a href="/user/{{user_id}}/">{{ user.ordered_name() }}</a></li>
           {% endfor %}
           </ul>
         </div>
@@ -94,6 +97,9 @@
             <div class="row">
               {% block trashModal %}
               {% endblock %}
+              {% if user_name is defined %}
+              <h2>Publications for {{ user_name }}</h2>
+              {% endif %}
               {% for year, year_publications in publications.group_by_year().items() %}
               <h3>Publications from {{ year }}</h3>
                 {% for pubmed_id, publication in year_publications.sorted_by_date().items() %}

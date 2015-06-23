@@ -8,8 +8,10 @@ from citation_reporter.PubmedSearch import Publication, Publications
 from citation_reporter.Author import Author
 
 import flask
+from boltons.strutils import slugify
 from flask import Flask, render_template, request, jsonify, \
-                         make_response, url_for, redirect, flash
+                         make_response, url_for, redirect, \
+                         flash, abort
 from StringIO import StringIO
 
 parent_folder = os.path.abspath(os.path.dirname(__file__))
@@ -62,33 +64,75 @@ def publications_page():
     return redirect(url_for('publications_page'))
   return render_template('affiliated.html',
                         publications=publications.not_denied(),
+                        users=users,
                         other_page=('Trash', url_for('trash_page')),
                         download_link=url_for('download'))
+
+@app.route('/user/<user_id>/')
+def user_page(user_id):
+  if not user_id in users:
+    abort(404)
+  return render_template('affiliated.html',
+                        publications=publications.filter_by_user_id(user_id),
+                        users=users,
+                        user_name=users[user_id].full_name(),
+                        other_page=('Trash', url_for('trash_page')),
+                        download_link=url_for('download', user_id=user_id))
 
 @app.route('/publications.csv')
 def download():
   output_file = StringIO()
-  output_publications = publications.not_denied()
+  user_id = request.args.get("user_id")
+  if user_id:
+    if user_id not in users:
+      abort(404)
+    output_publications = publications.filter_by_user_id(user_id,
+                                                         include_denied=False)
+  else:
+    output_publications = publications.not_denied()
   output_csv = output_publications.to_csv(output_file)
   output = make_response(output_file.getvalue())
-  output.headers["Content-Disposition"] = "attachment; filename=publications.csv"
+  if user_id:
+    user_name = slugify(users[user_id].full_name())
+    output.headers["Content-Disposition"] = "attachment; filename=%s_publications.csv" % user_name
+  else:
+    output.headers["Content-Disposition"] = "attachment; filename=publications.csv"
   output.headers["Content-type"] = "text/csv"
   return output
 
-@app.route('/trash')
+@app.route('/trash/')
 def trash_page():
   return render_template('trash.html',
-                        publications=publications.denied(),
+                        publications=publications.denied().has_potential_author(),
+                        users=users,
                         other_page=('Publications', url_for('publications_page')),
                         download_link=url_for('download_trash'))
 
 @app.route('/trash.csv')
 def download_trash():
   output_file = StringIO()
-  output_publications = publications.denied()
+  output_publications = publications.denied().has_potential_author()
   output_csv = output_publications.to_csv(output_file)
   output = make_response(output_file.getvalue())
   output.headers["Content-Disposition"] = "attachment; filename=trash_publications.csv"
+  output.headers["Content-type"] = "text/csv"
+  return output
+
+@app.route('/unaffiliated/')
+def unaffiliated():
+  return render_template('trash.html',
+                        publications=publications.denied().has_no_potential_author(),
+                        users=users,
+                        other_page=('Publications', url_for('publications_page')),
+                        download_link=url_for('download_unaffiliated'))
+
+@app.route('/unaffiliated.csv')
+def download_unaffiliated():
+  output_file = StringIO()
+  output_publications = publications.denied().has_no_potential_author()
+  output_csv = output_publications.to_csv(output_file)
+  output = make_response(output_file.getvalue())
+  output.headers["Content-Disposition"] = "attachment; filename=unaffiliated_publications.csv"
   output.headers["Content-type"] = "text/csv"
   return output
 
