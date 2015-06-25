@@ -3,6 +3,7 @@
 import datetime
 import logging
 import os
+import pkg_resources
 import re
 import time
 
@@ -21,10 +22,11 @@ from Queue import Queue
 
 parent_folder = os.path.abspath(os.path.dirname(__file__))
 template_folder = os.path.join(parent_folder, '..', 'templates')
-static_folder = os.path.join(parent_folder, '..', 'static')
+if not os.path.isdir(template_folder):
+  template_folder = pkg_resources.resource_filename('citation_reporter',
+                                                    'templates')
 
-app = Flask(__name__, template_folder=template_folder,
-            static_folder=static_folder)
+app = Flask(__name__, template_folder=template_folder)
 logging.basicConfig(level=logging.DEBUG)
 
 def parse_pubmed_ids(publications_string):
@@ -231,19 +233,22 @@ def publication(pubmed_id):
 
 def update_config():
   global app
-  default_publication_data_filename = os.path.join(parent_folder, '..', 'publications.yml')
+  default_publication_data_filename = os.path.join(os.getcwd(), 'publications.yml')
   app.config['PUBLICATIONS_FILE'] = os.environ.get('CITATION_REPORTER_PUBLICATIONS',
                                                     default_publication_data_filename)
 
-  default_user_data_filename = os.path.join(parent_folder, '..', 'authors.yml')
+  default_user_data_filename = os.path.join(os.getcwd(), 'authors.yml')
   app.config['USERS_FILE'] = os.environ.get('CITATION_REPORTER_USERS',
                                                     default_user_data_filename)
-  app.config['BOOTSTRAP_FOLDER'] = os.environ.get('BOOTSTRAP_FOLDER',
-                                                    "/static/bootstrap-3.3.5-dist")
-  app.config['JQUERY_FILE'] = os.environ.get('JQUERY_FILE',
-                                                    "/static/jquery-2.1.4.min.js")
+  app.config['BOOTSTRAP_URL'] = os.environ.get('BOOTSTRAP_URL',
+                                                    "//maxcdn.bootstrapcdn.com/bootstrap/3.3.5")
+  app.config['JQUERY_URL'] = os.environ.get('JQUERY_URL',
+                                             "//code.jquery.com/jquery-2.1.4.min.js")
   app.config['PERSIST_CHANGES'] = os.environ.get('PERSIST_CITATION_REPORTER_CHANGES',
                                                     "True") == "True"
+  app.config['PORT'] = int(os.environ.get('CITATION_REPORTER_PORT',
+                                           os.environ.get('PORT',
+                                                           8080)))
 
 def load_publications():
   try:
