@@ -7,8 +7,6 @@ from datetime import datetime
 import logging
 import tempfile
 
-logging.basicConfig(level=logging.INFO)
-
 from citation_reporter.Author import User
 from citation_reporter.PubmedSearch import Searcher, Publication, Publications
 
@@ -60,7 +58,12 @@ def check_command_line():
   if options.start>options.end:
     print "Start year must be <= end year"
     do_exit=True
-  
+
+  if options.verbose:
+    logging.basicConfig(level=logging.INFO)
+  else:
+    logging.basicConfig(level=logging.WARN)
+
   if do_exit:
     print"Exiting"
     print
