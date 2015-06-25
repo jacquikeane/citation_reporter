@@ -305,4 +305,4 @@ if __name__ == '__main__':
   save_publications_process.start()
 
   app.secret_key = os.environ.get("FLASK_SECRET_KEY", os.urandom(24))
-  app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
+  app.run(host="0.0.0.0", port=app.config['PORT'])
