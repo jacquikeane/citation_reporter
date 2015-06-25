@@ -14,7 +14,10 @@ from boltons.strutils import slugify
 from flask import Flask, render_template, request, jsonify, \
                          make_response, url_for, redirect, \
                          flash, abort
+from functools import wraps
 from StringIO import StringIO
+from threading import Thread
+from Queue import Queue
 
 parent_folder = os.path.abspath(os.path.dirname(__file__))
 template_folder = os.path.join(parent_folder, '..', 'templates')
@@ -53,7 +56,37 @@ def message_about_new_publications(new_publications):
   logging.debug(message)
   return message
 
+def save_publications(data_to_write, publication_data_filename):
+  while(True):
+    for i in range(5):
+      if data_to_write.qsize() > 1:
+        data_to_write.get()
+      else:
+        break
+    timestamp, latest_publications = data_to_write.get()
+    data_to_write.publications = None
+    with open(publication_data_filename, 'w') as publications_file:
+      publications_file.write(latest_publications.sorted_by_date().to_yaml())
+    logging.debug("Have saved publications from '%s' to disk" %
+                  timestamp.isoformat())
+
+def save_changes(func):
+  @wraps(func)
+  def decorator(*args, **kwargs):
+    result = func(*args, **kwargs)
+    if app.config['PERSIST_CHANGES'] and request.method != "GET":
+      global data_to_write
+      data_to_write.put((datetime.datetime.now(), publications))
+      logging.debug("Queued publications to be saved to disk")
+    elif request.method == "GET":
+      logging.debug("GET request, no changes to publications")
+    else:
+      logging.warning("Persistance disabled, have not saved to disk")
+    return result
+  return decorator
+
 @app.route('/', methods=["GET", "POST"])
+@save_changes
 def publications_page():
   global publications
   if request.method == 'POST':
@@ -156,7 +189,9 @@ def refresh_publication_page(publication):
                          pubmed_id=publication.pubmed_id)
 
 @app.route('/publication/<pubmed_id>/<author_string>/', methods=['GET', 'PUT'])
+@save_changes
 def update_publication_authors(pubmed_id, author_string):
+  global publications
   publication = publications.get(pubmed_id)
   if publication == None:
     error = {"error": "Couldn't find publication with pubmed_id: %s" %
@@ -177,7 +212,9 @@ def update_publication_authors(pubmed_id, author_string):
     return refresh_publication_page(publication)
 
 @app.route('/publication/<pubmed_id>/', methods=['GET', 'DELETE'])
+@save_changes
 def publication(pubmed_id):
+  global publications
   if request.method == 'GET':
     publication = publications[pubmed_id]
     return refresh_publication_page(publication)
@@ -254,6 +291,13 @@ if __name__ == '__main__':
   for publication in publications.values():
     publication.update_authors(users)
   logging.info("Updated publication authors")
+
+  data_to_write = Queue()
+  save_publications_process = Thread(target=save_publications,
+                                      args=(data_to_write,
+                                            app.config['PUBLICATIONS_FILE']))
+  save_publications_process.daemon = True
+  save_publications_process.start()
 
   app.secret_key = os.environ.get("FLASK_SECRET_KEY", os.urandom(24))
   app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
