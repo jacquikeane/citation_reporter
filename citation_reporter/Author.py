@@ -153,5 +153,5 @@ class User(object):
     data = yaml.load(yaml_data)
     users = {}
     for user_data in data:
-      users[user.ID] = User.from_dict(user_data)
+      users[user_data['ID']] = User.from_dict(user_data)
     return users

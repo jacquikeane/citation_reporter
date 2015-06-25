@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
+import datetime
 import logging
 import os
 import re
+import time
 
 from citation_reporter.PubmedSearch import Publication, Publications
-from citation_reporter.Author import Author
+from citation_reporter.Author import Author, User
 
 import flask
 from boltons.strutils import slugify
@@ -17,7 +19,6 @@ from StringIO import StringIO
 parent_folder = os.path.abspath(os.path.dirname(__file__))
 template_folder = os.path.join(parent_folder, '..', 'templates')
 static_folder = os.path.join(parent_folder, '..', 'static')
-publication_data_filename = os.path.join(parent_folder, '..', 'publications.yml')
 
 app = Flask(__name__, template_folder=template_folder,
             static_folder=static_folder)
@@ -191,22 +192,68 @@ def publication(pubmed_id):
     message = {"success": "Moved publication '%s' to trash" % pubmed_id}
     return jsonify(**message)
 
-if __name__ == '__main__':
+def update_config():
+  global app
+  default_publication_data_filename = os.path.join(parent_folder, '..', 'publications.yml')
+  app.config['PUBLICATIONS_FILE'] = os.environ.get('CITATION_REPORTER_PUBLICATIONS',
+                                                    default_publication_data_filename)
+
+  default_user_data_filename = os.path.join(parent_folder, '..', 'authors.yml')
+  app.config['USERS_FILE'] = os.environ.get('CITATION_REPORTER_USERS',
+                                                    default_user_data_filename)
+  app.config['BOOTSTRAP_FOLDER'] = os.environ.get('BOOTSTRAP_FOLDER',
+                                                    "/static/bootstrap-3.3.5-dist")
+  app.config['JQUERY_FILE'] = os.environ.get('JQUERY_FILE',
+                                                    "/static/jquery-2.1.4.min.js")
+  app.config['PERSIST_CHANGES'] = os.environ.get('PERSIST_CITATION_REPORTER_CHANGES',
+                                                    "True") == "True"
+
+def load_publications():
   try:
-    with open(publication_data_filename, 'r') as publication_data_file:
+    with open(app.config['PUBLICATIONS_FILE'], 'r') as publication_data_file:
       publications = Publications.from_yaml(publication_data_file.read())
+    logging.info("Loaded publications from %s" %
+                 app.config['PUBLICATIONS_FILE'])
   except IOError:
     logging.warning("Could not open %s to read publications" %
-                    publication_data_filename)
+                    app.config['PUBLICATIONS_FILE'])
     publications = Publications([])
   except Exception as e:
-    logging.error("There was a problem parsing publications from %s: %s" %
-                  (publication_data_filename, e))
+    logging.error("There was a problem parsing publications from %s" %
+                  app.config['PUBLICATIONS_FILE'], exc_info=e)
     publications = Publications([])
+  return publications
 
-  users = publications.get_users()
+def load_users():
+  try:
+    with open(app.config['USERS_FILE'], 'r') as user_data_file:
+      users = User.from_yaml(user_data_file.read())
+    logging.info("Loaded %s users from %s" % (len(users),
+                                              app.config['USERS_FILE']))
+  except IOError:
+    logging.warning("Could not open %s to read users" %
+                    app.config['USERS_FILE'])
+    users = {}
+  except Exception as e:
+    logging.error("There was a problem parsing users from %s" %
+                      app.config['USERS_FILE'], exc_info=e)
+    users = {}
+
+  publication_users = publications.get_users()
+  publication_users.update(users)
+  users = publication_users
+  logging.info("Merge users from userfile with users from publications, %s found" % len(users))
+
+  return users
+
+if __name__ == '__main__':
+  update_config()
+  publications = load_publications()
+  users = load_users()
+
   for publication in publications.values():
     publication.update_authors(users)
+  logging.info("Updated publication authors")
 
   app.secret_key = os.environ.get("FLASK_SECRET_KEY", os.urandom(24))
   app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))

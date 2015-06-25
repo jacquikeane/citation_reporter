@@ -165,7 +165,7 @@ class Publications(OrderedDict):
         for author in authors:
           if author.user_id not in users:
             users[author.user_id] = author.user
-    logging.debug("Found %s users" % len(users))
+    logging.debug("Found %s users in publications" % len(users))
     def ordered_name(user_ID_user):
       user_id, user = user_ID_user
       return user.ordered_name()

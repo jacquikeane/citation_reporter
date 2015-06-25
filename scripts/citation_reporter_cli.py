@@ -20,23 +20,25 @@ DEFAULT_AFFILIATION="Sanger"
 def main():
   usage = "usage: %prog [options]"
   parser = OptionParser(usage=usage)
-        
-        
-  parser.add_option("-o", "--output", action="store", dest="outputfile", help="output file name (in csv format)", type="string", metavar="FILE", default="")
-  parser.add_option("-u", "--users", action="store", dest="usersfile", help="csv file containing two to six columns for each user: surname (required), first name (required), middle initial (optional), affiliation(optional), ORCID ID (optional), ResearchGate ID (optional)", type="string", metavar="FILE", default="")
+
+
+  parser.add_option("-o", "--output", action="store", dest="outputfile",
+                    help="output file name (in csv format)", type="string", metavar="FILE", default="")
+  parser.add_option("-u", "--users", action="store", dest="usersfile",
+                    help="Yaml file of the following data for each user: surname (required), first name (required), middle initial (optional), affiliation(required), ORCID ID (optional), ResearchGate ID (optional)", type="string", metavar="FILE", default="")
   parser.add_option("-p", "--publications", action="store", dest="publicationsfile",
                     help="publications file to be updated (in yaml format as output by this script)", type="string", metavar="FILE", default="")
   parser.add_option("-s", "--start_year", action="store", dest="start", help="Year to start search from [default = %default]", type="int", metavar="YEAR", default=START_YEAR)
   parser.add_option("-e", "--end_year", action="store", dest="end", help="Year to end search [default = present (<%default)]", type="int", metavar="YEAR", default=END_YEAR)
-  parser.add_option("-A", "--affiliation", action="store", dest="affiliation", help="Default affiliation (applies to any user without an affiliation specified in the users file. [default = %default]", metavar="AFFILIATION", default=DEFAULT_AFFILIATION)
-  parser.add_option("-v", "--verbose", action="store_true", dest="verbose", help="Verbose mode", metavar="AFFILIATION", default=False)
-  
-  
+  parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
+                    help="Verbose mode", metavar="VERBOSE", default=False)
+
+
   return parser.parse_args()
-  
+
 def check_command_line():
   do_exit=False
-  
+
   if options.usersfile=="":
     print "No users file specified"
     do_exit=True
@@ -69,7 +71,7 @@ if __name__=="__main__":
 
   (options, args)=main()
   check_command_line()
-  
+
   try:
     with open(options.publicationsfile, 'r') as publications_input:
       publications = Publications.from_yaml(publications_input.read())
@@ -80,16 +82,19 @@ if __name__=="__main__":
     publications={}
   users={}
 
-  with open(options.usersfile, "rU") as usersfile:
-    users = User.load_csv(usersfile, options)
+  with open(options.usersfile, "r") as usersfile:
+    users = User.from_yaml(usersfile.read())
   users_count = len(users)
+  logging.info("Loaded %s users from %s" % (users_count, options.usersfile))
+
   pubmed_ids = set()
+  logging.info("Searching pubmed for publications")
   for user in users.values():
     new_pubmed_ids = Searcher.get_pubmed_ids_for_user(user, options.start, options.end)
     pubmed_ids.update(new_pubmed_ids)
+  pubmed_id_count = len(pubmed_ids)
+  logging.info("Found %s citations by searching pubmed" % pubmed_id_count)
 
-  logging.info("Found %s citations with at least one user matching the input queries" % len(publications))
-  
   new_publications = Publications.from_pubmed_ids(list(pubmed_ids))
   publications = Publications.merge(publications, new_publications)
 
