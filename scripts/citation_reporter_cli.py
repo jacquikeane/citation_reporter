@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os, sys
+import os, sys, re, requests
 import xml.etree.ElementTree as ET
 from optparse import OptionParser
 from datetime import datetime
@@ -94,6 +94,19 @@ if __name__=="__main__":
     pubmed_ids.update(new_pubmed_ids)
   pubmed_id_count = len(pubmed_ids)
   logging.info("Found %s citations by searching pubmed" % pubmed_id_count)
+
+  logging.info("Getting pubmed_ids from the Library")
+  try:
+    for year in range(options.start, options.end + 1):
+      r = requests.get("http://www.sanger.ac.uk/research/publications/%s.html" %
+                       year)
+      new_pubmed_ids = re.findall("http://ukpmc.ac.uk/abstract/MED/(\d{8})",
+                                  r.text)
+      pubmed_ids.update(new_pubmed_ids)
+  except Exception as e:
+    logging.error("Could not fetch pubmed_ids from the Library: %s" % e)
+  logging.info("Fetched another %s ids from the library" % (len(pubmed_ids) -
+               pubmed_id_count))
 
   new_publications = Publications.from_pubmed_ids(list(pubmed_ids))
   publications = Publications.merge(publications, new_publications)
