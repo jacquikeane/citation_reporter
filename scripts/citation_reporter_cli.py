@@ -25,7 +25,7 @@ def main():
   parser.add_option("-u", "--users", action="store", dest="usersfile",
                     help="Yaml file of the following data for each user: surname (required), first name (required), middle initial (optional), affiliation(required), ORCID ID (optional), ResearchGate ID (optional)", type="string", metavar="FILE", default="")
   parser.add_option("-p", "--publications", action="store", dest="publicationsfile",
-                    help="publications file to be updated (in yaml format as output by this script)", type="string", metavar="FILE", default="")
+                    help="publications file to be updated (in yaml format as output by this script)", type="string", metavar="FILE", default="publications.yml")
   parser.add_option("-s", "--start_year", action="store", dest="start", help="Year to start search from [default = %default]", type="int", metavar="YEAR", default=START_YEAR)
   parser.add_option("-e", "--end_year", action="store", dest="end", help="Year to end search [default = present (<%default)]", type="int", metavar="YEAR", default=END_YEAR)
   parser.add_option("-v", "--verbose", action="store_true", dest="verbose",
@@ -42,9 +42,6 @@ def check_command_line():
     do_exit=True
   if not os.path.isfile(options.usersfile):
     print "Cannot find users file:", options.usersfile
-    do_exit=True
-  if options.outputfile=="":
-    print "No output file specified"
     do_exit=True
   if options.start>datetime.now().year:
     print "Start year must be <", datetime.now().year
@@ -117,13 +114,12 @@ if __name__=="__main__":
   for publication in publications.values():
     publication.update_authors(users)
 
-  output=open(options.outputfile, "wb")
-  affiliated_publications = publications.not_denied()
-  affiliated_publications.to_csv(output)
-  output.close()
-
-  logging.info("%s citations with at least one user matching the input queries have been printed to %s" % (
-    len(affiliated_publications), options.outputfile))
+  if options.outputfile != "":
+    with open(options.outputfile, "wb") as output:
+      affiliated_publications = publications.not_denied()
+      affiliated_publications.to_csv(output)
+      logging.info("%s citations with at least one user matching the input queries have been printed to %s" % (
+        len(affiliated_publications), options.outputfile))
   try:
     with open(options.publicationsfile, 'w') as publications_output:
       publications_output.write(publications.to_yaml())

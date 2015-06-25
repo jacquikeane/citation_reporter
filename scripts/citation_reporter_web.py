@@ -206,7 +206,7 @@ def update_publication_authors(pubmed_id, author_string):
       try:
         publication.update_author_status(author_string, user_id, status)
       except KeyError:
-        logging.warning("Could not set status '%s' for user '%s' on publication '%s'; skipping" % 
+        logging.warning("Could not set status '%s' for user '%s' on publication '%s'; skipping" %
                         (status, user_id, pubmed_id))
         continue
     return refresh_publication_page(publication)
