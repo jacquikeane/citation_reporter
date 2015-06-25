@@ -30,20 +30,25 @@ def parse_pubmed_ids(publications_string):
 
 def new_publications_stats(new_publications):
   new_trash_publications_set = set(new_publications.denied().keys())
-  new_publication_set = set(new_publications.keys())
+  new_publications_set = set(new_publications.keys())
   existing_publication_set = set(publications.keys())
-  new_publications_count = len(new_publication_set.difference(existing_publication_set))
+  new_publications_count = len(new_publications_set.difference(existing_publication_set))
   new_trash_publications_count = len(new_trash_publications_set.difference(existing_publication_set))
-  return (new_publications_count, new_trash_publications_count)
+  duplicate_publications_count = len(new_publications_set.intersection(existing_publication_set))
+  return (new_publications_count,
+          new_trash_publications_count,
+          duplicate_publications_count)
 
 def message_about_new_publications(new_publications):
-  new_publications_count, new_trash_publications_count = new_publications_stats(new_publications)
-  if new_publications_count == 1:
+  new_count, trash_count, duplicate_count = new_publications_stats(new_publications)
+  if new_count == 1:
     message = "Added 1 new publication"
   else:
-    message = "Added %s new publications" % new_publications_count
-  if new_trash_publications_count > 0:
-    message += "; %s moved straight to trash because no authors found" % new_trash_publications_count
+    message = "Added %s new publications" % new_count
+  if trash_count > 0:
+    message += "; %s had no potential authors found" % trash_count
+  if duplicate_count > 0:
+    message += "; %s duplicates of an existing publication" % duplicate_count
   logging.debug(message)
   return message
 
