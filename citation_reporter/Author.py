@@ -139,7 +139,7 @@ class User(object):
   @classmethod
   def from_dict(cls, user_data):
     user = User()
-    user.ID = user_data.get("ID", "")
+    user.ID = str(user_data.get("ID", ""))
     user.surname = user_data.get("surname", "")
     user.first_name = user_data.get("first_name", "")
     user.middle_initials = user_data.get("middle_initials", "")
