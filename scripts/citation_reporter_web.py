@@ -25,6 +25,7 @@ template_folder = os.path.join(parent_folder, '..', 'templates')
 if not os.path.isdir(template_folder):
   template_folder = pkg_resources.resource_filename('citation_reporter',
                                                     'templates')
+logging.debug("Loading templates from %s" % template_folder)
 
 app = Flask(__name__, template_folder=template_folder)
 logging.basicConfig(level=logging.DEBUG)
