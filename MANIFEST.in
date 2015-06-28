@@ -1,2 +1,2 @@
-recursive-include templates *
-recursive-include examples *
+recursive-include citation_reporter/templates *
+recursive-include citation_reporter/examples *
