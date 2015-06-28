@@ -20,6 +20,8 @@ from StringIO import StringIO
 from threading import Thread
 from Queue import Queue
 
+logging.basicConfig(level=logging.DEBUG)
+
 parent_folder = os.path.abspath(os.path.dirname(__file__))
 template_folder = os.path.join(parent_folder, '..', 'templates')
 if not os.path.isdir(template_folder):
@@ -28,7 +30,6 @@ if not os.path.isdir(template_folder):
 logging.debug("Loading templates from %s" % template_folder)
 
 app = Flask(__name__, template_folder=template_folder)
-logging.basicConfig(level=logging.DEBUG)
 
 def parse_pubmed_ids(publications_string):
   publication_ids = publications_string.replace(',', ' ').replace(';', ' ').split(' ')
