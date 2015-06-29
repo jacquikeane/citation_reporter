@@ -12,6 +12,7 @@ from citation_reporter.Author import Author, User
 
 import flask
 from boltons.strutils import slugify
+from collections import OrderedDict
 from flask import Flask, render_template, request, jsonify, \
                          make_response, url_for, redirect, \
                          flash, abort
@@ -286,6 +287,12 @@ def load_users():
   publication_users = publications.get_users()
   publication_users.update(users)
   users = publication_users
+
+  def by_name(user_id__user):
+    user_id, user = user_id__user
+    return user.ordered_name()
+  users = OrderedDict(sorted(users.items(), key=by_name))
+
   logging.info("Merge users from userfile with users from publications, %s found" % len(users))
 
   return users
