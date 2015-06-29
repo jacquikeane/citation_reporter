@@ -70,8 +70,11 @@ def save_publications(data_to_write, publication_data_filename):
         break
     timestamp, latest_publications = data_to_write.get()
     data_to_write.publications = None
-    with open(publication_data_filename, 'w') as publications_file:
+    # We want an "atomic" write so write to a temporary file and then move it to
+    # the file we actually want to persist to.
+    with open(publication_data_filename + ".part", 'w') as publications_file:
       publications_file.write(latest_publications.sorted_by_date().to_yaml())
+    os.rename(publication_data_filename + ".part", publication_data_filename)
     logging.debug("Have saved publications from '%s' to disk" %
                   timestamp.isoformat())
 
