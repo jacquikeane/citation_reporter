@@ -63,7 +63,7 @@ def message_about_new_publications(new_publications):
 
 def save_publications(data_to_write, publication_data_filename):
   while(True):
-    for i in range(5):
+    for i in range(20):
       if data_to_write.qsize() > 1:
         data_to_write.get()
       else:
@@ -82,7 +82,7 @@ def save_changes(func):
     if app.config['PERSIST_CHANGES'] and request.method != "GET":
       global data_to_write
       data_to_write.put((datetime.datetime.now(), publications))
-      logging.debug("Queued publications to be saved to disk")
+      logging.debug("Queued publications to be saved to disk. Queue is %s long" % data_to_write.qsize())
     elif request.method == "GET":
       logging.debug("GET request, no changes to publications")
     else:
