@@ -1,0 +1,30 @@
+set daemon  30              # check services at 30 seconds intervals
+set mailserver localhost
+set alert bt5@sanger.ac.uk  # who to email if there is a problem
+set logfile syslog
+set httpd port 2812 and
+    use address 127.0.0.1  # only accept connection from localhost
+    allow localhost        # allow localhost to connect to the server and
+    allow admin:monit      # require user 'admin' with password 'monit'
+
+#
+## Check Processes
+#
+  check process citation_reporter_web with pidfile /nfs/users/nfs_b/bt5/citation_reporter_prod/citation_reporter_web.pid
+    start program = "/nfs/users/nfs_b/bt5/citation_reporter_prod/citation_reporter_web start"
+    stop program = "/nfs/users/nfs_b/bt5/citation_reporter_prod/citation_reporter_web stop"
+
+#
+## Check custom program status output.
+#
+  check program citation_reporter_web_4xx with path /nfs/users/nfs_b/bt5/citation_reporter_prod/checks/check_citation_reporter_web_4xx.sh
+    if status != 0 then alert
+
+  check program citation_reporter_web_5xx with path /nfs/users/nfs_b/bt5/citation_reporter_prod/checks/check_citation_reporter_web_5xx.sh
+    if status != 0 then alert
+
+  check program citation_reporter_web_http_GET with path /nfs/users/nfs_b/bt5/citation_reporter_prod/checks/check_citation_reporter_web_http_GET.sh
+    if status != 0 then alert
+
+  check program citation_reporter_web_backups with path "/nfs/users/nfs_b/bt5/citation_reporter_prod/checks/check_citation_reporter_web_backups.py /nfs/users/nfs_b/bt5/citation_reporter_prod/backups"
+    if status != 0 then alert

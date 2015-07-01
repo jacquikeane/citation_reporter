@@ -1,0 +1,1 @@
+@reboot /nfs/users/nfs_b/bt5/citation_reporter_prod/monit/bin/monit -c /nfs/users/nfs_b/bt5/citation_reporter_prod/monitrc -l /nfs/users/nfs_b/bt5/citation_reporter_prod/monit.log
