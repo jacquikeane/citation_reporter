@@ -1,0 +1,15 @@
+publications.yml
+authors.yml
+backups/
+!backups/publications-latest.yml.tgz
+!backups/daily/publications-daily.yml.tgz
+!backups/weekly/publications-weekly.yml.tgz
+!backups/monthly/publications-monthly.yml.tgz
+venv
+monit
+backup.logrotate.state
+citation_reporter_web.pid
+monit.log
+web.log
+*.pyc
+*~
