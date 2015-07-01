@@ -1,0 +1,1 @@
+52 * * * * /usr/sbin/logrotate /nfs/users/nfs_b/bt5/citation_reporter_prod/backup.logrotate.conf -s /nfs/users/nfs_b/bt5/citation_reporter_prod/backup.logrotate.state -f
