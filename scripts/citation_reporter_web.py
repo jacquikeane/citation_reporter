@@ -82,12 +82,12 @@ def save_changes(func):
   @wraps(func)
   def decorator(*args, **kwargs):
     result = func(*args, **kwargs)
-    if app.config['PERSIST_CHANGES'] and request.method != "GET":
+    if app.config['PERSIST_CHANGES'] and not request.method in ["GET", "HEAD"]:
       global data_to_write
       data_to_write.put((datetime.datetime.now(), publications))
       logging.debug("Queued publications to be saved to disk. Queue is %s long" % data_to_write.qsize())
-    elif request.method == "GET":
-      logging.debug("GET request, no changes to publications")
+    elif request.method in ["GET", "HEAD"]:
+      logging.debug("%s request, no changes to publications" % request.method)
     else:
       logging.warning("Persistance disabled, have not saved to disk")
     return result
