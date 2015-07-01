@@ -1,0 +1,39 @@
+#!/bin/bash
+
+set -e
+WORKING_DIR=/nfs/users/nfs_b/bt5/citation_reporter_prod
+. ${WORKING_DIR}/venv/bin/activate
+
+set -u
+DAEMON=$(which citation_reporter_web.py)
+PIDFILE=${WORKING_DIR}/citation_reporter_web.pid
+export LOGFILE=${WORKING_DIR}/web.log
+export CITATION_REPORTER_PUBLICATIONS=${WORKING_DIR}/publications.yml
+export CITATION_REPORTER_USERS=${WORKING_DIR}/authors.yml
+
+case "$1" in
+  start)
+   echo "Starting web server"
+   /sbin/start-stop-daemon --start \
+	   --pidfile $PIDFILE --background --make-pidfile \
+	   --startas /bin/bash -- -c "exec $DAEMON >> $LOGFILE 2>&1"
+   ;;
+ stop)
+   echo "Stopping web server"
+   /sbin/start-stop-daemon --stop --pidfile $PIDFILE --verbose --retry 5
+   ;;
+ restart)
+   echo "Restarting web server"
+   /sbin/start-stop-daemon --stop --pidfile $PIDFILE --verbose --retry 5
+   sleep 5
+   /sbin/start-stop-daemon --start \
+	   --pidfile $PIDFILE --background --make-pidfile \
+	   --startas /bin/bash -- -c "exec $DAEMON >> $LOGFILE 2>&1"
+   ;;
+ *)
+   echo "Usage: citation_reporter_web {start|stop|restart}"
+   exit 1
+   ;;
+esac
+
+exit 0
