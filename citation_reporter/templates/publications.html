@@ -54,6 +54,9 @@
       margin: 0;
       padding: 0 0 15px 0;
     }
+    .hidden-row {
+      display: none;
+    }
     </style>
   </head>
   <body>
@@ -128,6 +131,9 @@
                 <strong>No matching publications found</strong>
               {% endif %}
             </div>
+            <div class="row hidden-row">
+              <label class="checkbox"><input id="pageNeedsReloading" type="checkbox" value="PageNeedsReloading">Page Needs Reloading?</label>
+            </div>
           </div>
         </div>
       </div>
@@ -154,7 +160,12 @@
         });
       });
       $(function () {
-        $('[data-tooltip="tooltip"]').tooltip()
+        $('[data-tooltip="tooltip"]').tooltip();
+        var pageNeedsReloading = $('#pageNeedsReloading')[0];
+        if (pageNeedsReloading.checked) {
+          window.location.reload();
+        }
+        pageNeedsReloading.checked = true;
       })
     </script>
     {% block trashScripts %}
