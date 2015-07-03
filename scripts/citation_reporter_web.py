@@ -74,6 +74,8 @@ def save_publications(data_to_write, publication_data_filename):
     # the file we actually want to persist to.
     with open(publication_data_filename + ".part", 'w') as publications_file:
       publications_file.write(latest_publications.sorted_by_date().to_yaml())
+      publications_file.flush()
+      os.fsync(publications_file.fileno())
     os.rename(publication_data_filename + ".part", publication_data_filename)
     logging.debug("Have saved publications from '%s' to disk" %
                   timestamp.isoformat())
