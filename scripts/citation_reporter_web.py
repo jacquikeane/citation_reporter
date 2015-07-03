@@ -77,8 +77,8 @@ def save_publications(data_to_write, publication_data_filename):
       publications_file.flush()
       os.fsync(publications_file.fileno())
     os.rename(publication_data_filename + ".part", publication_data_filename)
-    logging.debug("Have saved publications from '%s' to disk" %
-                  timestamp.isoformat())
+    logging.debug("Have saved publications from '%s' to disk.  Queue is %s long" %
+                  (timestamp.isoformat(), data_to_write.qsize()))
 
 def save_changes(func):
   @wraps(func)
