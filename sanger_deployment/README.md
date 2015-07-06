@@ -37,10 +37,10 @@ In this case I have installed directly from the dev branch on Github.  Releases 
 
 ### Setup Backups
 
-* Copy [backup.logrotate.conf](sanger_deployment/backup.logrotate.conf) onto the server;
+* Copy [backup.logrotate.conf](backup.logrotate.conf) onto the server;
 * Amend backup.logrotate.conf to point to the correct directories;
-* Ensure that a [backups](sanger_deployment/backups) folder exists and create associated files if they don't exist (empty files are fine);
-* Amend [backup.logrotate.crontab](sanger_deployment/backup.logrotate.crontab) to point to the correct config; and
+* Ensure that a [backups](backups) folder exists and create associated files if they don't exist (empty files are fine);
+* Amend [backup.logrotate.crontab](backup.logrotate.crontab) to point to the correct config; and
 * Add / edit the cronjob `crontab -e`
 
 ### Install monit
@@ -49,12 +49,12 @@ In this case I have installed directly from the dev branch on Github.  Releases 
 * Configure it so that it is installed into a non-priviledged location (something like `./configure --prefix=my_folder`)
 * Make and install it according to the latest instructions in the downloaded README
 * Edit citation_reporter_web 'init' script (e.g. paths) and copy it onto the server
-* Edit [monitrc](sanger_deployment/monitrc) and copy it onto the server
+* Edit [monitrc](monitrc) and copy it onto the server
   * Correct paths
   * Enable / disable the monit web UI or change the port
   * Update the alert email details so that you're warned rather than me :)
-* Copy the [check scripts](sanger_deployment/checks) onto the server and update relevant paths in the scripts
-* Edit the paths in [monit.crontab](sanger_deployment/monit.crontab) and update cron (`crontab -e`)
+* Copy the [check scripts](checks) onto the server and update relevant paths in the scripts
+* Edit the paths in [monit.crontab](monit.crontab) and update cron (`crontab -e`)
 * [Optional] Add the monit/bin directory to your `PATH` and / or `PATH` in your .bash_profile`
 * Start monit - `monit -c path_to_monitrc`
 * Check the status of services - `monit -c path_to_monitrc status`
@@ -91,7 +91,7 @@ The citation_reporter_web daemon should now be running and should restart pretty
 
 ### Viewing the monit checks in a web browser
 
-Monit has a handy web view to show you how the web server is behaving.  This can only be accessed from the web server itself so you will need to setup an SSH tunnel.  The default credentials are "admin/monit" but these can be changed in [monitrc](sanger_deployment/monitrc).
+Monit has a handy web view to show you how the web server is behaving.  This can only be accessed from the web server itself so you will need to setup an SSH tunnel.  The default credentials are "admin/monit" but these can be changed in [monitrc](monitrc).
 
 You can setup the SSH tunnel with the following command:
 
@@ -103,11 +103,11 @@ and then visit `localhost:28120` in your browser
 
 ### Adding additional checks
 
-The [monit documentation](https://mmonit.com/monit/documentation/monit.html) is pretty good.  My advice is to write a script which exits with a non-zero status and prints a short failure message and put it into the [checks](sanger_deployment/checks) directory.  The edit [monitrc](sanger_deployment/monitrc) to execute that check (by copying one of the existing examples).
+The [monit documentation](https://mmonit.com/monit/documentation/monit.html) is pretty good.  My advice is to write a script which exits with a non-zero status and prints a short failure message and put it into the [checks](checks) directory.  The edit [monitrc](monitrc) to execute that check (by copying one of the existing examples).
 
 ### Changing alert recipients
 
-Edit [monitrc](sanger_deployment/monitrc)
+Edit [monitrc](monitrc)
 
 ### Testing in a Dev environment
 
@@ -123,7 +123,7 @@ Edit [monitrc](sanger_deployment/monitrc)
 
 * Stop the server
 * Backup `publications.yml`
-* Diff against on of the 'latest' [backups](sanger_deployment/backups)
+* Diff against on of the 'latest' [backups](backups)
 * Make some changes
 * Maybe check the changes in a dev environment
 * Start the server
