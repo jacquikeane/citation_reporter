@@ -36,6 +36,10 @@ Environment Variables:
 * `PERSIST_CITATION_REPORTER_CHANGES` - Should changes through the web UI be persisted to disk (defaults to "True", other values considered False)
 * `CITATION_REPORTER_PORT` - port to run on (defaults to $PORT if present or 8080 otherwise)
 
+## Further Info
+
+There are further instructions on installation and Sanger specific deployment considerations in [sanger_deployment](sanger_deployment/README).
+
 ## Known Issues
 
 * Can't update users from through the web UI
@@ -44,3 +48,4 @@ Environment Variables:
   * someone adds loads of publications
   * someone makes updates via the web UI quicker than they can be written to disk
 * There is no authentication, you have to trust that users won't mess things up horribly (best to backup `publications.yml` periodically)
+* Users don't have start and end dates which makes removing them a bit un-intuative
