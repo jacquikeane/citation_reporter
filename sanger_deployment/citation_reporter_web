@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e
-WORKING_DIR=/nfs/users/nfs_b/bt5/citation_reporter_prod
+WORKING_DIR=/var/opt/citation_reporter_prod
 . ${WORKING_DIR}/venv/bin/activate
 
 set -u

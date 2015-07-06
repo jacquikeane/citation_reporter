@@ -1,6 +1,6 @@
 #!/bin/bash
 
-WORKING_FOLDER=/nfs/users/nfs_b/bt5/citation_reporter_prod
+WORKING_FOLDER=/var/opt/citation_reporter_prod
 LOGFILE=${WORKING_FOLDER}/web.log
 
 # Cap response at the first 100 failures so that we don't run out of memory if 
