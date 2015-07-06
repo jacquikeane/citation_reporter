@@ -56,7 +56,7 @@ In this case I have installed directly from the dev branch on Github.  Releases 
 * Copy the [check scripts](checks) onto the server and update relevant paths in the scripts
 * Edit the paths in [monit.crontab](monit.crontab) and update cron (`crontab -e`)
 * [Optional] Add the monit/bin directory to your `PATH` and / or `PATH` in your .bash_profile`
-* Start monit - `monit -c path_to_monitrc`
+* Start monit - `monit -c path_to_monitrc -l monit.log`
 * Check the status of services - `monit -c path_to_monitrc status`
 
 The citation_reporter_web daemon should now be running and should restart pretty quickly if you were to `kill` the relevant process.
