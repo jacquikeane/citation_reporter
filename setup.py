@@ -9,7 +9,7 @@ example_files = os.listdir(os.path.join(os.path.dirname(__file__), 'citation_rep
 examples = [os.path.join('examples', example) for example in example_files]
 
 setup(name='citation_reporter',
-      version='0.0.0',
+      version='0.1.0',
       scripts=[
         'scripts/citation_reporter_cli.py', 
         'scripts/citation_reporter_web.py'
