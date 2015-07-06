@@ -38,6 +38,7 @@ In this case I have installed directly from the dev branch on Github.  Releases 
 ### Setup Backups
 
 * Copy [backup.logrotate.conf](sanger_deployment/backup.logrotate.conf) onto the server;
+* Amend backup.logrotate.conf to point to the correct directories;
 * Ensure that a [backups](sanger_deployment/backups) folder exists and create associated files if they don't exist (empty files are fine);
 * Amend [backup.logrotate.crontab](sanger_deployment/backup.logrotate.crontab) to point to the correct config; and
 * Add / edit the cronjob `crontab -e`
@@ -52,6 +53,7 @@ In this case I have installed directly from the dev branch on Github.  Releases 
   * Correct paths
   * Enable / disable the monit web UI or change the port
   * Update the alert email details so that you're warned rather than me :)
+* Copy the [check scripts](sanger_deployment/checks) onto the server and update relevant paths in the scripts
 * Edit the paths in [monit.crontab](sanger_deployment/monit.crontab) and update cron (`crontab -e`)
 * [Optional] Add the monit/bin directory to your `PATH` and / or `PATH` in your .bash_profile`
 * Start monit - `monit -c path_to_monitrc`
