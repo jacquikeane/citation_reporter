@@ -38,7 +38,7 @@ Environment Variables:
 
 ## Further Info
 
-There are further instructions on installation and Sanger specific deployment considerations in [sanger_deployment](sanger_deployment/README).
+There are further instructions on installation and Sanger specific deployment considerations in [sanger_deployment](sanger_deployment/README.md).
 
 ## Known Issues
 
