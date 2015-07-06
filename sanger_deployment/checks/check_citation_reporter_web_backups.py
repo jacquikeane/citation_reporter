@@ -12,7 +12,7 @@ now = datetime.datetime.now()
 def delta_seconds(filepath):
   atime = datetime.datetime.utcfromtimestamp(os.path.getatime(filepath))
   delta = now - atime
-  return delta.total_seconds()
+  return float(delta.total_seconds())
 
 def delta_hours(filepath):
   return delta_seconds(filepath) / (60*60)
