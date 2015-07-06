@@ -1,0 +1,174 @@
+<html>
+  <head>
+    <title>Publication Reporter</title>
+    <script src="{{ config['JQUERY_URL'] }}"></script>
+      <link rel="stylesheet" href="{{ config['BOOTSTRAP_URL'] }}/css/bootstrap.min.css">
+      <link rel="stylesheet" href="{{ config['BOOTSTRAP_URL'] }}/css/bootstrap-theme.min.css">
+      <script src="{{ config['BOOTSTRAP_URL'] }}/js/bootstrap.min.js"></script>
+    <style>
+    .panel-heading
+    {
+      display: block;
+      padding: 10px;
+    }
+    .pubmed_title,.pubmed_link
+    {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .pubmed_title:hover
+    {
+      white-space: normal;
+    }
+    .dropdown-menu>li
+    {
+      padding: 3px 20px;
+      clear: both;
+      font-weight: 400;
+      line-height: 1.42857143;
+      white-space: nowrap;
+    }
+    #sidebar a
+    {
+      white-space: normal;
+    }
+    div#publication-data
+    {
+      margin-top: -15px;
+    }
+    div#authors-list {
+      margin-top: 30px;
+    }
+    div#authors-list ul{
+      list-style-type: none;
+      margin-left: 0;
+      padding-left: 0;
+    }
+    .publication-details li {
+      display: inline-block;
+      padding: 0 15px 0 0;
+    }
+    .publication-details ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0 0 15px 0;
+    }
+    .hidden-row {
+      display: none;
+    }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row page-header">
+        <div class="col-sm-12">
+          <h1>Publication Reporter</h1>
+          <p>Reports on who has published what.  Feel free to confirm the authors of papers you know about</p>
+        </div>
+      </div>
+      {% with messages=get_flashed_messages() %}
+        {% if messages %}
+      <div class="row">
+          {% for message in messages %}
+        <div class="alert alert-success alert-dismissible fade in">
+          <button type="button" class="close" data-dismiss="alert">
+            <span>x</span>
+          </button>
+          {{ message }}
+        </div>
+          {% endfor %}
+      </div>
+        {% endif %}
+      {% endwith %}
+      <div class="row">
+        <div class="col-sm-2" id="sidebar">
+          <ul class="nav nav-pills nav-stacked">
+            <li><a href="{{ download_link }}" class="btn btn-primary btn-block">Download</a></li>
+            <li><a href="/" class="btn btn-default btn-block">All publications</a></li>
+            <li><a href="/trash/" class="btn btn-default btn-block">Trash</a></li>
+          </ul>
+          <div id="authors-list">
+            <h4>Affiliated Authors</h4>
+            <ul>
+            {% for user_id, user in users.items() %}
+              <li><a href="/user/{{user_id}}/">{{ user.ordered_name() }}</a></li>
+            {% endfor %}
+            </ul>
+          </div>
+        </div>
+        <div class="col-sm-10">
+          {% if not isTrash %}
+          <div id="add-publications">
+            <div class="row">
+              <form action="/" method="POST">
+                <div class="input-group">
+                  <input type="text" name="pubmed_ids" class="form-control" placeholder="Pubmed ID(s)">
+                  <span class="input-group-btn">
+                    <input type="submit" value="Add" class="btn btn-default">
+                  </span>
+                </div>
+              </form>
+            </div>
+          </div>
+          {% endif %}
+          <div id="publication-data">
+            <div class="row">
+              {% block trashModal %}
+              {% endblock %}
+              {% if user_title is defined %}
+              <h2>{{ user_title }}</h2>
+              {% endif %}
+              {% for year, year_publications in publications.group_by_year().items() %}
+              <h3>Publications from {{ year }}</h3>
+                {% for pubmed_id, publication in year_publications.sorted_by_date().items() %}
+              <div class="panel panel-info" id="pubmed_id_{{ pubmed_id }}">
+                  {% include 'publication.html' %}
+              </div>
+                {% endfor %}
+              {% endfor %}
+              {% if publications|length == 0 %}
+                <strong>No matching publications found</strong>
+              {% endif %}
+            </div>
+            <div class="row hidden-row">
+              <label class="checkbox"><input id="pageNeedsReloading" type="checkbox" value="PageNeedsReloading">Page Needs Reloading?</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      $( "#publication-data" ).on('click', ".dropdown-menu>li>a", function(event) {
+        event.preventDefault();
+        var author_string = encodeURIComponent($(this).data('author_string'));
+        var pubmed_id = $(this).data('pubmed_id');
+        var author_id = $(this).data('author_id');
+        var confirmation_status = $(this).data('status');
+        var URL = "/publication/" + pubmed_id + "/" + author_string + "/";
+        var data = {};
+        data[author_id] = confirmation_status;
+        $.ajax({
+          url: URL,
+          type: 'PUT',
+          data: JSON.stringify(data),
+          contentType: 'application/json',
+          success: function(result) {
+            $( "#pubmed_id_" + pubmed_id ).html(result);
+            $('[data-tooltip="tooltip"]').tooltip();
+          }
+        });
+      });
+      $(function () {
+        $('[data-tooltip="tooltip"]').tooltip();
+        var pageNeedsReloading = $('#pageNeedsReloading')[0];
+        if (pageNeedsReloading.checked) {
+          window.location.reload();
+        }
+        pageNeedsReloading.checked = true;
+      })
+    </script>
+    {% block trashScripts %}
+    {% endblock %}
+  </body>
+</html>

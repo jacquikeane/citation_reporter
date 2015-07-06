@@ -1,0 +1,24 @@
+{% extends "publications.html" %}
+{% set isTrash=True %}
+{% block trashScripts %}
+    <script>
+      $( "#publication-data" ).on('click', '.trashLink', function(event) {
+        var pubmed_id = $(this).data('pubmed_id');
+        var URL = "/publication/" + pubmed_id + "/";
+        $.ajax({
+          url: URL,
+          type: 'DELETE',
+          success: function(result) {
+            $.ajax({
+              url: URL,
+              type: 'GET',
+              success: function(result) {
+                $( "#pubmed_id_" + pubmed_id ).html(result);
+		$('[data-tooltip="tooltip"]').tooltip();
+              }
+            });
+          }
+        });
+      });
+    </script>
+{% endblock %}

@@ -1,0 +1,1 @@
+@reboot /var/opt/citation_reporter_prod/monit/bin/monit -c /var/opt/citation_reporter_prod/monitrc -l /var/opt/citation_reporter_prod/monit.log

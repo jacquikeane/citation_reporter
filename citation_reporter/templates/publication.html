@@ -1,0 +1,67 @@
+{%- macro trashLink(isTrash, pubmed_id) -%}
+  {%- if isTrash -%}
+    {%- set trash_title="Already in trash, confirm an author to restore" -%}
+  {%- else -%}
+    {%- set trash_title="Move to trash" -%}
+  {%- endif -%}
+  <a class="trashLink" href="#" data-toggle="modal" data-target="#trashModal" data-pubmed_id="{{pubmed_id}}" data-tooltip="tooltip" data-placement="top" title="{{ trash_title }}"><span class="glyphicon glyphicon-trash"></span></a>
+{%- endmacro -%}
+
+{%- macro journalDetails(detail_name, detail_class, detail_value) -%}
+  {%- if detail_value is defined -%}
+  <li>{{ detail_name }}: <span class="{{ detail_class }}">{{ detail_value }}</span></li>
+  {%- endif -%}
+{%- endmacro -%}
+
+            <div class="panel-heading">
+              <div class="row">
+                <div class="col-xs-2 pubmed_link"><a href="http://www.ncbi.nlm.nih.gov/pubmed/{{ pubmed_id }}">{{ pubmed_id }}</a></div>
+                <div class="col-xs-9 pubmed_title"> {{ publication['TI'] }}</div>
+                <div class="col-xs-1 text-center">{{ trashLink(isTrash, pubmed_id) }}</div>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="publication-details">
+                <ul>
+                  {{ journalDetails('Journal', 'journal-name', publication['JT']) }}
+                  {{ journalDetails('Publication Date', 'publication-date', publication['DP']) }}
+                  {{ journalDetails('Volume', 'journal-volume', publication['VI']) }}
+                  {{ journalDetails('Issue', 'journal-issue', publication['IP']) }}
+                  {{ journalDetails('Page', 'journal-page', publication['PG']) }}
+                </ul>
+              </div>
+              <div class="authors">
+                {% for author_string in publication['AU'] %}
+                <div class="btn-group">
+                  {% if publication._get_confirmed_author(author_string) %}
+                    {% set author_style="btn-success" %}
+                    {% set author_text=publication._get_confirmed_author(author_string).user.full_name() %}
+                    {% set affiliated_author=True %}
+                  {% elif publication._get_possible_authors(author_string)|length > 0 %}
+                    {% set author_style="btn-warning" %}
+                    {% set author_text=publication._get_possible_authors(author_string)[0].user.full_name() %}
+                    {% set affiliated_author=True %}
+                  {% elif publication.affiliated_authors.get(author_string, [])|length > 0 %}
+                    {% set author_style="btn-default" %}
+                    {% set author_text=author_string %}
+                    {% set affiliated_author=True %}
+                  {% else %}
+                    {% set affiliated_author=False %}
+                  {% endif %}
+
+                  {% if affiliated_author %}
+                  <button type="button" class="btn {{author_style}} dropdown-toggle" data-toggle="dropdown">{{ author_text }} <span class="caret"></span></button>
+                  <ul class="dropdown-menu">
+                    <li>Who is '{{ author_string }}'?</li>
+                    {% for author in publication.affiliated_authors.get(author_string, []) %}
+                    <li><a href="#" data-pubmed_id="{{pubmed_id}}" data-author_id="{{ author.user_id }}" data-status="confirmed" data-author_string="{{author_string}}">{{ author.user.full_name() }}</a></li>
+                    {% endfor %}
+                    <li><a href="#" data-pubmed_id="{{pubmed_id}}" data-author_id="all" data-status="denied" data-author_string="{{author_string}}">None of the above</a></li>
+                  </ul>
+                  {% else %}
+                  <button type="button" class="btn btn-default">{{author_string}}</button>
+                  {% endif %}
+                </div>
+                {% endfor %}
+              </div>
+            </div>

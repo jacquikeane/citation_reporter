@@ -1,0 +1,1 @@
+52 * * * * /usr/sbin/logrotate /var/opt/citation_reporter_prod/backup.logrotate.conf -s /var/opt/citation_reporter_prod/backup.logrotate.state -f
