@@ -6,32 +6,54 @@ WORKING_DIR=/nfs/users/nfs_b/bt5/citation_reporter_prod
 
 set -u
 DAEMON=$(which citation_reporter_web.py)
+UPDATE_SCRIPT=$(which citation_reporter_cli.py)
 PIDFILE=${WORKING_DIR}/citation_reporter_web.pid
+CURRENT_YEAR=$(date +%Y)
 export LOGFILE=${WORKING_DIR}/web.log
 export CITATION_REPORTER_PUBLICATIONS=${WORKING_DIR}/publications.yml
 export CITATION_REPORTER_USERS=${WORKING_DIR}/authors.yml
 
 case "$1" in
   start)
-   echo "Starting web server"
+   echo "Starting web server" | tee -a $LOGFILE
    /sbin/start-stop-daemon --start \
-	   --pidfile $PIDFILE --background --make-pidfile \
-	   --startas /bin/bash -- -c "exec $DAEMON >> $LOGFILE 2>&1"
+     --pidfile $PIDFILE --background --make-pidfile \
+     --startas /bin/bash -- -c "exec $DAEMON >> $LOGFILE 2>&1"
    ;;
  stop)
-   echo "Stopping web server"
+   echo "Stopping web server" | tee -a $LOGFILE
    /sbin/start-stop-daemon --stop --pidfile $PIDFILE --verbose --retry 5
    ;;
+ update-publications)
+   if [ -e $PIDFILE ] && ps -p $(cat $PIDFILE) > /dev/null; then
+     echo "Stopping web server" | tee -a $LOGFILE
+     /sbin/start-stop-daemon --stop --pidfile $PIDFILE --verbose --retry 5
+     WAS_RUNNING=true
+   else
+     echo "Web server already stopped" | tee -a $LOGFILE
+     WAS_RUNNING=false
+   fi
+   echo "Updating publications" | tee -a $LOGFILE
+   $UPDATE_SCRIPT -s 2000 -e $CURRENT_YEAR -p $CITATION_REPORTER_PUBLICATIONS -u $CITATION_REPORTER_USERS -v  2>&1 | tee -a $LOGFILE
+   if [ "$WAS_RUNNING" = true ]; then
+     echo "Restarting web server" | tee -a $LOGFILE
+     /sbin/start-stop-daemon --start \
+       --pidfile $PIDFILE --background --make-pidfile \
+       --startas /bin/bash -- -c "exec $DAEMON >> $LOGFILE 2>&1"
+   else
+     echo "Web server was stopped" | tee -a $LOGFILE
+   fi
+   ;;
  restart)
-   echo "Restarting web server"
+   echo "Restarting web server" | tee -a $LOGFILE
    /sbin/start-stop-daemon --stop --pidfile $PIDFILE --verbose --retry 5
    sleep 5
    /sbin/start-stop-daemon --start \
-	   --pidfile $PIDFILE --background --make-pidfile \
-	   --startas /bin/bash -- -c "exec $DAEMON >> $LOGFILE 2>&1"
+     --pidfile $PIDFILE --background --make-pidfile \
+     --startas /bin/bash -- -c "exec $DAEMON >> $LOGFILE 2>&1"
    ;;
  *)
-   echo "Usage: citation_reporter_web {start|stop|restart}"
+   echo "Usage: citation_reporter_web {start|stop|restart|update-publications}"
    exit 1
    ;;
 esac
