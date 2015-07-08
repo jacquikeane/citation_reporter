@@ -93,6 +93,7 @@
           <div id="authors-list">
             <h4>Affiliated Authors</h4>
             <ul>
+	      <li><a href='https://docs.google.com/forms/d/1FVjdSVzJmeGhmMeo8C09uuz8EOuJj-VAV1Vr_G-Mvkw/viewform?usp=send_form'>+ Request New Author</a></li>
             {% for user_id, user in users.items() %}
               <li><a href="/user/{{user_id}}/">{{ user.ordered_name() }}</a></li>
             {% endfor %}
