@@ -8,12 +8,12 @@ import logging
 import tempfile
 
 from citation_reporter.Author import User
+from citation_reporter.LibrarySearcher import LibrarySearcher
 from citation_reporter.PubmedSearch import Searcher, Publication, Publications
 
 START_YEAR=2010
 END_YEAR=datetime.now().year+1
 DEFAULT_AFFILIATION="Sanger"
-
 
 def main():
   usage = "usage: %prog [options]"
@@ -96,17 +96,9 @@ if __name__=="__main__":
   logging.info("Found %s citations by searching pubmed" % pubmed_id_count)
 
   logging.info("Getting pubmed_ids from the Library")
-  try:
-    for year in range(options.start, options.end + 1):
-      r = requests.get("http://www.sanger.ac.uk/research/publications/%s.html" %
-                       year)
-      new_pubmed_ids = re.findall("http://ukpmc.ac.uk/abstract/MED/(\d{8})",
-                                  r.text)
-      pubmed_ids.update(new_pubmed_ids)
-  except Exception as e:
-    logging.error("Could not fetch pubmed_ids from the Library: %s" % e)
-  logging.info("Fetched another %s ids from the library" % (len(pubmed_ids) -
-               pubmed_id_count))
+  new_pubmed_ids = LibrarySearcher.get_pubmed_ids(options.start, options.end)
+  pubmed_ids.update(new_pubmed_ids)
+  logging.info("Found additional %s publications in Library" % (len(pubmed_ids) - pubmed_id_count))
 
   new_publications = Publications.from_pubmed_ids(list(pubmed_ids))
   publications = Publications.merge(publications, new_publications)
