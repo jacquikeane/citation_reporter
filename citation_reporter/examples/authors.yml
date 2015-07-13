@@ -1,14 +1,20 @@
 - ID: '1'
-  ORCID: 0000000315126194
-  Researchgate: 0000000315126194
+  affiliation: Sanger
+  first_name: Richard
+  surname: Durbin
+- ID: '2'
+  ORCID: 0000-0003-1512-6194
   affiliation: Sanger
   first_name: Simon
+  google_scholar: Z_-fdA4AAAAJ
   middle_initials: R
   surname: Harris
-- ID: '2'
-  ORCID: 0000000270695958
-  Researchgate: 0000000270695958
+  team: '81'
+- ID: '4'
+  ORCID: 0000-0002-7069-5958
   affiliation: Sanger
   first_name: Julian
+  google_scholar: Hh8RwigAAAAJ
   middle_initials: ''
   surname: Parkhill
+  team: '81'
