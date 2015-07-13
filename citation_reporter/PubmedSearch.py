@@ -110,6 +110,10 @@ class Publications(OrderedDict):
     return Publications([publication for publication in self.values() if
             publication.confirmation_status != Publication.DENIED])
 
+  def confirmed(self):
+    return Publications([publication for publication in self.values() if
+            publication.has_confirmed_author()])
+
   def has_potential_author(self):
     publications = Publications()
     for pubmed_id, publication in self.items():

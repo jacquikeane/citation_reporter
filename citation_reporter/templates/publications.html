@@ -84,7 +84,9 @@
       <div class="row">
         <div class="col-sm-2" id="sidebar">
           <ul class="nav nav-pills nav-stacked">
+            {% if download_link is defined %}
             <li><a href="{{ download_link }}" class="btn btn-primary btn-block">Download</a></li>
+	    {% endif %}
             <li><a href="/" class="btn btn-default btn-block">All publications</a></li>
             <li><a href="/trash/" class="btn btn-default btn-block">Trash</a></li>
           </ul>

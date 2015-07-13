@@ -7,6 +7,7 @@ import pkg_resources
 import re
 import time
 
+from citation_reporter.LibrarySearcher import LibrarySearcher
 from citation_reporter.PubmedSearch import Publication, Publications
 from citation_reporter.Author import Author, User
 
@@ -238,6 +239,61 @@ def publication(pubmed_id):
   else:
     message = {"success": "Moved publication '%s' to trash" % pubmed_id}
     return jsonify(**message)
+
+@app.route('/missing')
+def missing():
+  """Hidden URL for missing publications
+
+  I've intentionally not publicised this feature because it makes lots of HTTP
+  requests to the Sanger website and I probably only want me / administrators to
+  use it on an infrequent basis.
+
+  This endpoint lists all of the publicatons which are currently not in the
+  Sanger Library's dataset"""
+  library_pubmed_ids = set(LibrarySearcher.get_pubmed_ids())
+  possible_pubmed_ids = set(publications.not_denied().keys())
+  missing_pubmed_ids = possible_pubmed_ids.difference(library_pubmed_ids)
+  missing_publications = Publications([publications[pubmed_id] for pubmed_id in
+                                       missing_pubmed_ids])
+  return render_template('affiliated.html',
+                        publications=missing_publications,
+                        users=users,
+                        user_title="Publications not in the Sanger Library")
+
+@app.route('/stats')
+def stats():
+  """Hidden URL for statistics
+
+  I've intentionally not publicised this feature because it makes lots of HTTP
+  requests to the Sanger website and I probably only want me / administrators to
+  use it on an infrequent basis"""
+  all_pubmed_ids = set(publications.keys())
+  confirmed_pubmed_ids = set(publications.confirmed().keys())
+  denied_pubmed_ids = set(publications.denied().keys())
+  to_be_confirmed_ids = all_pubmed_ids.difference(confirmed_pubmed_ids, denied_pubmed_ids)
+
+  library_pubmed_ids = set(LibrarySearcher.get_pubmed_ids())
+  confirmed_in_library_ids = library_pubmed_ids.intersection(confirmed_pubmed_ids)
+  to_be_confirmed_in_library_ids = library_pubmed_ids.intersection(to_be_confirmed_ids)
+
+  not_in_libary_ids = all_pubmed_ids.difference(library_pubmed_ids)
+  confirmed_not_in_library = not_in_libary_ids.intersection(confirmed_pubmed_ids)
+  to_be_confirmed_not_in_library = not_in_libary_ids.intersection(to_be_confirmed_ids)
+
+  statistics = {
+    'tracked: total': len(all_pubmed_ids),
+    'tracked: confirmed': len(confirmed_pubmed_ids),
+    'tracked: possible': len(to_be_confirmed_ids),
+    'tracked: denied': len(denied_pubmed_ids),
+    'library: total': len(library_pubmed_ids),
+    'library: confirmed': len(confirmed_in_library_ids),
+    'library: possible': len(to_be_confirmed_in_library_ids),
+    'other: total': len(confirmed_not_in_library) + len(to_be_confirmed_not_in_library),
+    'other: confirmed': len(confirmed_not_in_library),
+    'other: possible': len(to_be_confirmed_not_in_library)
+  }
+
+  return jsonify(**statistics)
 
 def update_config():
   global app
