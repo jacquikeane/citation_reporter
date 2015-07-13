@@ -3,3 +3,6 @@
 *~
 authors.csv
 *.egg-info
+publications.yml
+authors.yml
+venv
