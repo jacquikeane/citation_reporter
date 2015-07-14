@@ -30,10 +30,10 @@ Create a folder and copy in an `authors.yml` file (and `publications.yml` file i
 ```
 virtualenv venv -p $(which python2)
 . venv/bin/activate
-pip install git+https://github.com/sanger-pathogens/citation_reporter.git@dev
+pip install git+https://github.com/sanger-pathogens/citation_reporter.git@master
 ```
 
-In this case I have installed directly from the dev branch on Github.  Releases may also be available from PyPi or you might want to use another branch (e.g. `master`).  NB, if you've already installed citation_reporter, you will need to append `--upgrade` to the `pip` command else no changes will be made.
+In this case I have installed directly from the master branch on Github.  Releases may also be available from PyPi or you might want to use another branch (e.g. `master`).  NB, if you've already installed citation_reporter, you will need to append `--upgrade` to the `pip` command else no changes will be made.
 
 ### Setup Backups
 

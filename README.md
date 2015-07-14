@@ -8,6 +8,12 @@ The tool is based on scripts developed by @simonrharris.
 
 Publications can be loaded through the web UI or a commandline script.  New users can only be added via the commandline script.
 
+### Installation
+
+```
+pip install git+https://github.com/sanger-pathogens/citation_reporter.git@master
+```
+
 ### scripts/citation_reporter_cli.py
 
 ```
