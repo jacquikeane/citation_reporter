@@ -7,7 +7,7 @@ import datetime
 
 from collections import OrderedDict
 
-now = datetime.datetime.now()
+now = datetime.datetime.utcnow()
 
 def delta_seconds(filepath):
   atime = datetime.datetime.utcfromtimestamp(os.path.getatime(filepath))
