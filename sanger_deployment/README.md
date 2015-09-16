@@ -41,7 +41,7 @@ In this case I have installed directly from the master branch on Github.  Releas
 * Amend backup.logrotate.conf to point to the correct directories;
 * Ensure that a [backups](backups) folder exists and create associated files if they don't exist (empty files are fine);
 * Amend [backup.logrotate.crontab](backup.logrotate.crontab) to point to the correct config; and
-* Add / edit the cronjob `crontab -e`
+* Add / edit the cronjob `crontab -e` with the contents of [backup.logrotate.crontab](backup.logrotate.crontab)
 
 ### Install monit
 
@@ -60,6 +60,15 @@ In this case I have installed directly from the master branch on Github.  Releas
 * Check the status of services - `monit -c path_to_monitrc status`
 
 The citation_reporter_web daemon should now be running and should restart pretty quickly if you were to `kill` the relevant process.
+
+### Setup Publication Updates
+
+This sets up a cronjob to update publications sometime after 5am every morning.  The server will temporarily be stoped
+so it's best for this not to run if lots of people are in the middle of using it.
+
+* Copy [update_publications.sh](update_publications.sh) onto the server;
+* Amend [update_publications.crontab](update_publications.crontab) to point to the correct directory; and
+* Add / edit the cronjob `crontab -e` with the contents of [update_publications.crontab](update_publications.crontab)
 
 ## Management
 
@@ -81,7 +90,7 @@ The citation_reporter_web daemon should now be running and should restart pretty
 ### Update publications
 
 * If you know the publications' pubmed ids, the easiest solution is to copy and paste a list of them into the web UI.  These can be space or comma deliminated.
-* If you want to search pubmed, make sure that the `authors.yml` list is up to date, stop the web server, run `./citation_reporter_web update-publications` and restart the web server.  NB this script would stop and start the server itself but monit would get confused so it is important to stop and start the server with monit.
+* If you want to search pubmed, make sure that the `authors.yml` list is up to date and run [update_publications.sh](update_publications.sh).  NB this script will stop and start the server itself so don't do it when lots of people are using the service (e.g. `tail -f web.log` first).
 
 ### Editing authors
 
