@@ -1,6 +1,6 @@
 set daemon  30              # check services at 30 seconds intervals
 set mailserver localhost
-set alert ben.taylor@sanger.ac.uk  # who to email if there is a problem
+set alert pathdevg@sanger.ac.uk not { action, instance } # who to email if there is a problem
 set logfile syslog
 set httpd port 2812 and
     use address 127.0.0.1  # only accept connection from localhost
