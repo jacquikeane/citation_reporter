@@ -1,0 +1,16 @@
+language: python
+addons:
+  apt:
+    packages:
+    - zlib1g-dev
+    - libblas-dev
+    - liblapack-dev
+    - libgfortran3
+    - libncurses5-dev
+python:
+  - "3.4"
+sudo: false
+install:
+  - "pip install git+https://github.com/sanger-pathogens/citation_reporter.git@master"
+script:
+  - "python setup.py test"
