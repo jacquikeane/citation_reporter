@@ -55,3 +55,5 @@ There are further instructions on installation and Sanger specific deployment co
   * someone makes updates via the web UI quicker than they can be written to disk
 * There is no authentication, you have to trust that users won't mess things up horribly (best to backup `publications.yml` periodically)
 * Users don't have start and end dates which makes removing them a bit un-intuative
+
+Build status: [![Build Status](https://travis-ci.org/sanger-pathogens/citation_reporter.svg?branch=master)](https://travis-ci.org/sanger-pathogens/citation_reporter)
