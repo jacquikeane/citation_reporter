@@ -1,4 +1,4 @@
-biopython==1.7
+biopython==1.70
 boltons==0.6.4
 Flask==0.10.1
 PyYAML==3.11
