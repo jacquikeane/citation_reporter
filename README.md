@@ -42,7 +42,7 @@ pip install git+https://github.com/sanger-pathogens/citation_reporter.git@master
 ```
 
 ### Running the tests
-The test can be run with dzil from the top level directory:  
+The test can be run from the top level directory:  
 ```
 python setup.py test
 ```
