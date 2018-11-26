@@ -9,6 +9,7 @@ Tool to keep track of a team's publications.
   * [Installation](#installation)
     * [Required dependencies](#required-dependencies)
     * [Using pip](#using-pip)
+    * [Running the tests](#running-the-tests)
   * [Usage](#usage)
     * [scripts/citation\_reporter\_cli\.py](#scriptscitation_reporter_clipy)
     * [scripts/citation\_reporter\_web\.py](#scriptscitation_reporter_webpy)
@@ -38,6 +39,12 @@ Details for installing citation_reporter are provided below. If you encounter an
 
 ```
 pip install git+https://github.com/sanger-pathogens/citation_reporter.git@master
+```
+
+### Running the tests
+The test can be run with dzil from the top level directory:  
+```
+python setup.py test
 ```
 
 ## Usage
