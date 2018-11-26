@@ -9,7 +9,7 @@ Tool to keep track of a team's publications.
   * [Installation](#installation)
     * [Required dependencies](#required-dependencies)
     * [Using pip](#using-pip)
-    * [Running the tests](running-the-tests)
+    * [Running the tests](#running-the-tests)
   * [Usage](#usage)
     * [scripts/citation\_reporter\_cli\.py](#scriptscitation_reporter_clipy)
     * [scripts/citation\_reporter\_web\.py](#scriptscitation_reporter_webpy)
