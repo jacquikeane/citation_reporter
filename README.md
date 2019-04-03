@@ -29,9 +29,9 @@ citation_reporter has the following dependencies:
 ### Required dependencies
 * biopython==1.70
 * boltons==0.6.4
-* Flask==0.10.1
-* PyYAML==3.11
-* requests==2.7.0
+* Flask==0.12.3
+* PyYAML==4.2b1
+* requests==2.20.0
 
 Details for installing citation_reporter are provided below. If you encounter an issue when installing citation_reporter please contact your local system administrator. If you encounter a bug please log it [here](https://github.com/sanger-pathogens/citation_reporter/issues) or email us at path-help@sanger.ac.uk.
 
